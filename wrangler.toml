@@ -12,11 +12,16 @@ id = "41f56eda4b684df5b6c87fb67379439a"
 directory = "./public"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = ["/api/*", "/telegram/*", "/pay/*", "/internal/*", "/service-pay/*", "/sub/*", "/sub-all/*", "/bots/*", "/cr-hook/*", "/cr-relay/*"]
+# Worker must handle API + Soroush webhook before SPA assets catch the path.
+run_worker_first = ["/api/*", "/soroush/*", "/pay/*", "/internal/*", "/service-pay/*", "/sub/*", "/sub-all/*", "/bots/*", "/cr-hook/*", "/cr-relay/*"]
 
 [vars]
 APP_VERSION = "3.6.0"
 
+# Real-time + historical logs in Cloudflare dashboard (Workers → Logs).
+[observability]
+enabled = true
+head_sampling_rate = 1
 
 [[durable_objects.bindings]]
 name = "BOT_STATE"
