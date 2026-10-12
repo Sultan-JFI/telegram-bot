@@ -102,7 +102,7 @@ r.post('/webhook', async (c) => {
   } else {
     if (!env.WEBHOOK_SECRET) return fail(c, 'webhook_secret_missing');
     const publicBase = env.MANAGED_BASE_URL || new URL(c.req.url).origin;
-    const url = `${publicBase}/telegram/webhook`;
+    const url = `${publicBase}/soroush/webhook`;
     res = await tgApi(token, 'setWebhook', {
       url,
       secret_token: env.WEBHOOK_SECRET,
@@ -117,13 +117,13 @@ r.post('/webhook', async (c) => {
     }
   }
 
-  if (!res.ok) return fail(c, res.description || 'telegram_error');
+  if (!res.ok) return fail(c, res.description || 'splus_error');
   return c.json({ ok: true, data: { result: res.result } });
 });
 
 r.post('/test', async c => {
   const token = await resolveToken(c.env); assert(token, 'token_missing');
-  const me = await tgApi(token, 'getMe'); assert(me.ok, me.description || 'telegram_connection_failed');
+  const me = await tgApi(token, 'getMe'); assert(me.ok, me.description || 'splus_connection_failed');
   const settings = await getSettings(c.env); settings.botUsername = me.result.username || ''; await saveSettings(c.env, settings);
   return c.json({ ok: true, data: { bot: me.result, settings: publicView(settings, c.env.BOT_TOKEN, c.env) } });
 });

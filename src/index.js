@@ -75,14 +75,6 @@ export async function runScheduled(env) {
   }
   await putJson(env, 'v2:runtime:cron', { at, finishedAt: Date.now(), status: errors.length ? 'partial' : 'ok', errors });
 }
-// workerd throws an isolate-killing "Can't read from request stream after response has been
-// sent" whenever a request forwarded to a Durable Object still has an unconsumed body when the
-// response is returned (cloudflare/workerd#918) — e.g. an expired-session 401, an unknown-route
-// 404 or any validation reply that returns before reading the body. Under `wrangler dev` the
-// exception crashes the session and every later request fails with http 500. Buffering the body
-// up front hands the handlers a detached request, so the socket-backed stream is always fully
-// drained before any response can be sent. Oversized bodies are drained too: every bodyLimit
-// cap stays below this ceiling, so such requests can only ever be rejected with 413.
 const MAX_BUFFERED_BODY = 23 * 1024 * 1024;
 async function detachedRequest(request) {
   if (!request.body) return request;
@@ -97,27 +89,34 @@ const serverError = (label, error, status = 500) => {
   return Response.json({ ok: false, error: code }, { status: httpStatus });
 };
 // Wraps the public (non-Hono) entry points: payment callbacks, subscription links,
-// creator webhooks and the Telegram webhook all live outside api.onError.
-// NOTE: this must be a plain call on the stub. Adding a method to BotCoordinator and
-// invoking it through the stub would need Durable Object RPC, which workerd refuses
-// unless the class `extends DurableObject` — that turns every request into a 500.
+// creator webhooks and the Soroush+ webhook all live outside api.onError.
 async function guarded(label, fn) {
   try { return await fn(); } catch (error) { return serverError(label, error); }
 }
+
+// Soroush+ Bot API mirrors Telegram's secret_token header name in many clients.
+// Accept both the standard Bot-API header and a Soroush-specific alias.
+function webhookSecret(request) {
+  return request.headers.get('x-telegram-bot-api-secret-token')
+    || request.headers.get('x-splus-bot-api-secret-token')
+    || request.headers.get('x-soroush-bot-api-secret-token')
+    || '';
+}
+
 async function dispatch(request, env, ctx) {
   const { pathname } = new URL(request.url);
   if (pathname.startsWith('/cr-hook/')) return guarded('cr-hook', () => creatorHook(env, request, pathname.slice('/cr-hook/'.length)));
   if (pathname.startsWith('/cr-relay/')) return guarded('cr-relay', () => creatorRelay(env, request, pathname.slice('/cr-relay/'.length)));
   if (pathname.startsWith('/bots/')) { try { return await managedPublic(request, env); } catch (error) { return Response.json({ok:false,error:error.status?error.message:'managed_request_failed'},{status:error.status||500}); } }
   if (pathname === '/internal/tick') { await runScheduled(env); return Response.json({ ok: true }); }
-  if (pathname === '/telegram/webhook') {
+  if (pathname === '/soroush/webhook') {
     if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
-    const secret = request.headers.get('x-telegram-bot-api-secret-token') || '';
+    const secret = webhookSecret(request);
     if (!env.WEBHOOK_SECRET || !await safeEqual(secret, env.WEBHOOK_SECRET)) return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
     if (Number(request.headers.get('content-length') || 0) > 1024 * 1024) return new Response('Too large', { status: 413 });
     let update; try { update = await request.json(); } catch {}
     if (!update || Array.isArray(update) || typeof update !== 'object') return Response.json({ ok: false, error: 'bad_request' }, { status: 400 });
-    // Acknowledge only after durable state changes. Telegram may retry a non-2xx update.
+    // Acknowledge only after durable state changes. Soroush+ may retry a non-2xx update.
     try { await handleUpdate(env, update); } catch (e) { console.error('[webhook] processing failed', e.name); return Response.json({ ok: false }, { status: 500 }); }
     return Response.json({ ok: true });
   }
@@ -188,19 +187,17 @@ export class BotCoordinator {
       requestEnv = {...requestEnv,TRUSTED_PARENT_ADMIN:admin}; path=url.pathname;
     }
     const run = () => dispatch(request, requestEnv, this.state);
-    // Uploads/downloads have independent UUID records and need not block group moderation.
     let fastPreCheckout = false;
     const independentRead = request.method === 'GET' && (path.startsWith('/bots/') || path.startsWith('/api/services/') || path.startsWith('/api/portal/') || path.startsWith('/sub/') || path.startsWith('/sub-all/'));
     const independentMedia = path.startsWith('/api/media') || /^\/api\/studio\/orders\/[^/]+\/receipt$/.test(path);
     let groupId = /^\/api\/studio\/groups\/(-\d+)(?:\/|$)/.exec(path)?.[1];
-    if (path === '/telegram/webhook' || (path === '/api/studio/groups' && request.method === 'POST')) {
+    if (path === '/soroush/webhook' || (path === '/api/studio/groups' && request.method === 'POST')) {
       const body = await request.clone().json().catch(() => null);
       fastPreCheckout = !!body?.pre_checkout_query;
       const update = body?.message || body?.edited_message || body?.chat_member || body?.my_chat_member || (body?.callback_query?.data?.startsWith('cap:') ? body.callback_query.message : null);
       if (update && ['group', 'supergroup'].includes(update.chat?.type)) groupId = String(update.chat.id);
       if (path === '/api/studio/groups' && /^-\d+$/.test(body?.chatId)) groupId = body.chatId;
     }
-    // A slow broadcast/upload must not serialize unrelated busy groups. Each group keeps its own ordered mutations.
     const response = await (independentMedia || independentRead || fastPreCheckout ? run() : groupId ? this.withGroupLock(groupId, run) : this.enqueue(run));
     if (request.method !== 'GET' || path.startsWith('/pay/')) await this.arm();
     return response;
@@ -229,13 +226,13 @@ async function routeRequest(request, env, ctx) {
     return env.ASSETS ? env.ASSETS.fetch(new Request(assetURL, request)) : new Response('Not Found', {status:404});
   }
   if (path.startsWith('/internal/')) return new Response('Not Found', { status: 404 });
-  if (path === '/telegram/webhook') {
+  if (path === '/soroush/webhook') {
     if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
-    const secret = request.headers.get('x-telegram-bot-api-secret-token') || '';
+    const secret = webhookSecret(request);
     if (!env.WEBHOOK_SECRET || !await safeEqual(secret, env.WEBHOOK_SECRET)) return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
     if (Number(request.headers.get('content-length') || 0) > 1024 * 1024) return new Response('Too large', { status: 413 });
   }
-  if (path.startsWith('/api/') || path === '/telegram/webhook' || path.startsWith('/pay/') || path.startsWith('/service-pay/') || path.startsWith('/sub/') || path.startsWith('/sub-all/') || path.startsWith('/bots/') || path.startsWith('/cr-hook/') || path.startsWith('/cr-relay/')) {
+  if (path.startsWith('/api/') || path === '/soroush/webhook' || path.startsWith('/pay/') || path.startsWith('/service-pay/') || path.startsWith('/sub/') || path.startsWith('/sub-all/') || path.startsWith('/bots/') || path.startsWith('/cr-hook/') || path.startsWith('/cr-relay/')) {
     if (env.BOT_STATE) return guarded('coordinator:' + path, () => stub(env).fetch(request));
     if (env.TEST_MODE) return dispatch(request, env, ctx);
     return Response.json({ ok: false, error: 'durable_object_binding_required' }, { status: 503 });
