@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { requireAuth } from '../auth.js';
+import { requireAuth, randomToken } from '../auth.js';
 import { getSettings, saveSettings } from '../kv.js';
 import { resolveToken, tgApi } from '../bot-api.js';
 import { patchV2Settings, PURPOSES, activeModules, assert } from '../config.js';
@@ -10,6 +10,19 @@ r.use('*', requireAuth);
 
 const fail = (c, error, status = 400) => c.json({ ok: false, error }, status);
 
+/** Prefer Worker secret; otherwise use/persist a panel-managed secret in settings. */
+export async function resolveWebhookSecret(env) {
+  if (env.WEBHOOK_SECRET) return env.WEBHOOK_SECRET;
+  const settings = await getSettings(env);
+  if (settings.webhookSecret && String(settings.webhookSecret).length >= 16) {
+    return String(settings.webhookSecret);
+  }
+  const secret = randomToken();
+  settings.webhookSecret = secret;
+  await saveSettings(env, settings);
+  return secret;
+}
+
 export function publicView(settings, envToken, env = {}) {
   const token = settings.botToken || envToken || '';
   const adminId = settings.adminId || env.ADMIN_ID || '';
@@ -18,6 +31,7 @@ export function publicView(settings, envToken, env = {}) {
     hasToken: !!token,
     tokenMasked: token ? `${'•'.repeat(8)}${token.slice(-4)}` : '',
     source: settings.botToken ? 'kv' : envToken ? 'env' : 'none',
+    hasWebhookSecret: !!(env.WEBHOOK_SECRET || settings.webhookSecret),
     adminId,
     defaultLang: settings.defaultLang,
     botLangMode: settings.botLangMode || 'both',
@@ -100,24 +114,30 @@ r.post('/webhook', async (c) => {
   if (action === 'delete') {
     res = await tgApi(token, 'deleteWebhook', { drop_pending_updates: false });
   } else {
-    if (!env.WEBHOOK_SECRET) return fail(c, 'webhook_secret_missing');
-    const publicBase = env.MANAGED_BASE_URL || new URL(c.req.url).origin;
-    const url = `${publicBase}/soroush/webhook`;
+    const secret = await resolveWebhookSecret(env);
+    const publicBase = env.MANAGED_BASE_URL || env.PUBLIC_BASE_URL || new URL(c.req.url).origin;
+    const url = `${publicBase.replace(/\/$/, '')}/soroush/webhook`;
     res = await tgApi(token, 'setWebhook', {
       url,
-      secret_token: env.WEBHOOK_SECRET,
+      secret_token: secret,
       allowed_updates: ['message', 'edited_message', 'callback_query', 'channel_post', 'my_chat_member', 'chat_member', 'pre_checkout_query'],
       drop_pending_updates: false,
     });
     if (res.ok) {
       const settings = await getSettings(env);
-      settings.publicBaseUrl = publicBase;
+      settings.publicBaseUrl = publicBase.replace(/\/$/, '');
+      if (!env.WEBHOOK_SECRET) settings.webhookSecret = secret;
       await saveSettings(env, settings);
-      return c.json({ ok: true, data: { url, miniAppUrl: publicBase, result: res.result } });
+      return c.json({ ok: true, data: { url, miniAppUrl: settings.publicBaseUrl, result: res.result } });
     }
   }
 
-  if (!res.ok) return fail(c, res.description || 'splus_error');
+  // Surface Soroush API errors clearly (e.g. Unauthorized from bad token).
+  if (!res.ok) {
+    const desc = res.description || 'splus_error';
+    const status = res.error_code === 401 || /unauthorized/i.test(desc) ? 401 : 400;
+    return fail(c, desc, status);
+  }
   return c.json({ ok: true, data: { result: res.result } });
 });
 
