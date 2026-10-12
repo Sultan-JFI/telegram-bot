@@ -10,7 +10,7 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { handleUpdate } from './telegram.js';
 import { DurableKV } from './storage.js';
-import { getJson, putJson } from './kv.js';
+import { getJson, putJson, getSettings } from './kv.js';
 import { safeEqual } from './auth.js';
 import { broadcastTick } from './broadcast.js';
 import { expireOrders } from './commerce.js';
@@ -45,16 +45,10 @@ api.use('*', async (c, next) => { c.header('cache-control', 'no-store'); c.heade
 for (const [path, routes] of Object.entries({ auth: authRoutes, dashboard: dashboardRoutes, users: usersRoutes, broadcast: broadcastRoutes, engagement: engagementRoutes, support: supportRoutes, menu: menuRoutes, news: newsRoutes, rates: ratesRoutes, settings: settingsRoutes, media: mediaRoutes, studio: studioRoutes, creator: creatorRoutes, services: serviceRoutes, portal, bots: managedRoutes })) api.route('/' + path, routes);
 api.get('/health', c => c.json({ ok: true, data: { ts: Date.now(), version: c.env.APP_VERSION || '2.0.0', colo: c.req.raw.cf?.colo || null, durable: !!c.env.__coordinated } }));
 api.notFound(c => c.json({ ok: false, error: 'not_found' }, 404));
-// Cloudflare's own "you are over the Free plan's daily allowance" exceptions (rows read /
-// written, requests, duration). They are thrown by the very first storage statement of a
-// request, so without this mapping the whole panel — including the login form — shows a
-// bare `internal_error` until the allowance resets at 00:00 UTC.
 const FREE_TIER_LIMIT = /free tier|exceeded allowed|daily (?:request |duration )?limit/i;
 export const errorCode = (error) => {
   const message = String(error?.message || '');
   if (FREE_TIER_LIMIT.test(message)) return 'cloudflare_free_tier_limit';
-  // Only the API's own snake_case codes are safe to echo back; anything else is a
-  // JavaScript exception message and must not leak to the client.
   return /^[a-z0-9_]+$/.test(message) ? message : 'internal_error';
 };
 api.onError((err, c) => {
@@ -69,7 +63,6 @@ export async function runScheduled(env) {
   if (at - (previous.at || 0) < 10000) return;
   const errors = [];
   await putJson(env, 'v2:runtime:cron', { at, status: 'running' });
-  // Each subsystem records its own delivery results; one failure must not stop the others.
   for (const [name, fn] of Object.entries({ orders: expireOrders, groups: groupTick, broadcasts: broadcastTick, feeds: feedTick, relay: relayTick, news: newsTick, rates: ratesTick, services: serviceTick, funding: fundingTick, backups: backupTick, servicesExtra: serviceEngagementTick })) {
     try { await fn(env); } catch (e) { errors.push({ name, error: String(e.message).slice(0, 160) }); }
   }
@@ -88,19 +81,33 @@ const serverError = (label, error, status = 500) => {
   const httpStatus = Number.isInteger(error?.status) ? Math.min(599, Math.max(400, error.status)) : code === 'cloudflare_free_tier_limit' ? 503 : status;
   return Response.json({ ok: false, error: code }, { status: httpStatus });
 };
-// Wraps the public (non-Hono) entry points: payment callbacks, subscription links,
-// creator webhooks and the Soroush+ webhook all live outside api.onError.
 async function guarded(label, fn) {
   try { return await fn(); } catch (error) { return serverError(label, error); }
 }
 
-// Soroush+ Bot API mirrors Telegram's secret_token header name in many clients.
-// Accept both the standard Bot-API header and a Soroush-specific alias.
-function webhookSecret(request) {
+function requestWebhookSecret(request) {
   return request.headers.get('x-telegram-bot-api-secret-token')
     || request.headers.get('x-splus-bot-api-secret-token')
     || request.headers.get('x-soroush-bot-api-secret-token')
     || '';
+}
+
+async function expectedWebhookSecret(env) {
+  if (env.WEBHOOK_SECRET) return env.WEBHOOK_SECRET;
+  try {
+    const settings = await getSettings(env);
+    if (settings?.webhookSecret) return String(settings.webhookSecret);
+  } catch (e) {
+    console.error('[webhook] failed to load settings secret', e?.name);
+  }
+  return '';
+}
+
+async function authorizeWebhook(request, env) {
+  const provided = requestWebhookSecret(request);
+  const expected = await expectedWebhookSecret(env);
+  if (!expected || !provided) return false;
+  return safeEqual(provided, expected);
 }
 
 async function dispatch(request, env, ctx) {
@@ -111,13 +118,14 @@ async function dispatch(request, env, ctx) {
   if (pathname === '/internal/tick') { await runScheduled(env); return Response.json({ ok: true }); }
   if (pathname === '/soroush/webhook') {
     if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
-    const secret = webhookSecret(request);
-    if (!env.WEBHOOK_SECRET || !await safeEqual(secret, env.WEBHOOK_SECRET)) return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+    if (!(await authorizeWebhook(request, env))) {
+      console.error('[webhook] unauthorized — missing or mismatched secret');
+      return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+    }
     if (Number(request.headers.get('content-length') || 0) > 1024 * 1024) return new Response('Too large', { status: 413 });
     let update; try { update = await request.json(); } catch {}
     if (!update || Array.isArray(update) || typeof update !== 'object') return Response.json({ ok: false, error: 'bad_request' }, { status: 400 });
-    // Acknowledge only after durable state changes. Soroush+ may retry a non-2xx update.
-    try { await handleUpdate(env, update); } catch (e) { console.error('[webhook] processing failed', e.name); return Response.json({ ok: false }, { status: 500 }); }
+    try { await handleUpdate(env, update); } catch (e) { console.error('[webhook] processing failed', e.name, String(e.message).slice(0, 200)); return Response.json({ ok: false }, { status: 500 }); }
     return Response.json({ ok: true });
   }
   if (pathname.startsWith('/service-pay/')) return guarded('service-pay', () => handleServicePayment(request, env));
@@ -226,10 +234,10 @@ async function routeRequest(request, env, ctx) {
     return env.ASSETS ? env.ASSETS.fetch(new Request(assetURL, request)) : new Response('Not Found', {status:404});
   }
   if (path.startsWith('/internal/')) return new Response('Not Found', { status: 404 });
+  // Webhook auth is fully handled inside dispatch (env secret OR settings.webhookSecret).
+  // Do not reject early here — that caused Unauthorized when only the panel secret existed.
   if (path === '/soroush/webhook') {
     if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
-    const secret = webhookSecret(request);
-    if (!env.WEBHOOK_SECRET || !await safeEqual(secret, env.WEBHOOK_SECRET)) return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
     if (Number(request.headers.get('content-length') || 0) > 1024 * 1024) return new Response('Too large', { status: 413 });
   }
   if (path.startsWith('/api/') || path === '/soroush/webhook' || path.startsWith('/pay/') || path.startsWith('/service-pay/') || path.startsWith('/sub/') || path.startsWith('/sub-all/') || path.startsWith('/bots/') || path.startsWith('/cr-hook/') || path.startsWith('/cr-relay/')) {
