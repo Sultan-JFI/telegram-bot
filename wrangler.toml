@@ -5,8 +5,8 @@ compatibility_date = "2025-09-01"
 workers_dev = true
 
 [[kv_namespaces]]
-binding = "WEBHOOK_SECRET"
-id = "1888ce1cd1f5481b9ad7d665a9dbe5b4"
+binding = "BOT_KV"
+id = "41f56eda4b684df5b6c87fb67379439a"
 
 [assets]
 directory = "./public"
