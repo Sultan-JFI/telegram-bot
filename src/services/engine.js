@@ -1,3 +1,4 @@
+import { isModernProvider, validateModernOptions } from "./modern-providers.js";
 import { getUser, getSettings } from "../kv.js";
 import { resolveToken, sendToUser } from "../bot-api.js";
 import { membershipGate, sendMembershipLock } from "../gate.js";
@@ -87,6 +88,11 @@ export async function savePlan(env, b, old = {}) {
       p.maxDays >= p.minDays,
     "invalid_custom_bounds",
   );
+  if (isModernProvider(panel.type)) {
+    validateModernOptions(panel.type, { ...panel.options, ...p.options }, true);
+    if (panel.type === "remnawave")
+      assert(p.days > 0 && (!p.custom || p.minDays > 0), "finite_expiry_required");
+  }
   for (const r of ["customer", "agent", "credit_agent"])
     if (b.prices?.[r] !== undefined && b.prices[r] !== "")
       p.prices[r] = money(b.prices[r]);
@@ -896,6 +902,7 @@ async function ownsRemote(env, panel, a, r) {
       (await get(env, "provider-progress", a.operationId))?.userId ===
       r.remoteId
     );
+  if (isModernProvider(panel.type)) return r.raw?.note === `BotPanel ${a.operationId}`;
   return String(r.raw?.note || "").includes(a.operationId);
 }
 

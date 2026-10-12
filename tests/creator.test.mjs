@@ -155,6 +155,7 @@ test("hub relays a broadcast update to registered panels only", async () => {
   assert.equal(bs.update && bs.update.text, "نسخه جدید منتشر شد", "panel b receives the update via relay");
   assert.equal(cs.update && cs.update.text, "نسخه جدید منتشر شد", "panel c receives the update via relay");
   assert.equal(repoUrl().startsWith("https://github.com/"), true, "the repo is exposed for the update button");
+  assert.equal(repoUrl(), "https://github.com/developerAmira/telegram-bot", "the update button points at the public repository");
 });
 
 test("a creator reply is delivered only to the panel that sent the message", async () => {
@@ -173,7 +174,7 @@ test("a creator reply is delivered only to the panel that sent the message", asy
 
   const sent = tg.messages.find((m) => String(m.chat_id) === OWNER && m.text.includes("سلام از پنل B"));
   assert.ok(sent, "the support message reaches the creator chat");
-  assert.ok(sent.text.includes("https://panel-b.example.com"), "the panel link must accompany the message so panels are not mixed up");
+  assert.equal(sent.text, "سلام از پنل B", "routing metadata must not appear in the message");
 
   const k = await creatorKeys();
   const reply = {

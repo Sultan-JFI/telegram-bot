@@ -1,3 +1,7 @@
+import {
+  MODERN_GATEWAYS, isModernGateway, POLLED_GATEWAYS, createModernInvoice,
+  verifyModernInvoice, verifyTronadoWebhook,
+} from "./modern-gateways.js";
 import { getSettings, getUser } from "../kv.js";
 import { resolveToken, tgApi, sendToUser } from "../bot-api.js";
 import {
@@ -40,6 +44,7 @@ import {
 } from "./crypto-pay.js";
 
 export const GATEWAYS = {
+  ...MODERN_GATEWAYS,
   manual: "کارت‌به‌کارت",
   tetrapay: "TetraPay / IRanpay 1 (FloyPay)",
   iranpay3: "IRanpay 3 / Factor API",
@@ -74,6 +79,9 @@ export async function saveGateway(env, b, old = {}) {
     currency: str(b.currency, 16) || "USDT_TRC20",
     address: str(b.address, 128),
     coinToman: money(b.coinToman || 0),
+    feePercent: integer(b.feePercent ?? old.feePercent ?? 0, 0, 100),
+    feeToman: money(b.feeToman ?? old.feeToman ?? 0),
+    wagePercent: integer(b.wagePercent ?? old.wagePercent ?? 0, 0, 100),
     confirmations: integer(b.confirmations || 20, 1, 1000),
     cardNumber: str(b.cardNumber, 24).replace(/[ -]/g, ""),
     cardHolder: str(b.cardHolder, 100),
@@ -111,6 +119,14 @@ export async function saveGateway(env, b, old = {}) {
     ["manual", "crypto", "stars"].includes(g.type) || g.secret,
     "gateway_credentials_required",
   );
+  if (isModernGateway(g.type)) {
+    const secret = await unseal(env, g.secret);
+    assert(secret.apiKey, "gateway_credentials_required");
+    if (g.type === "tronado") {
+      assert(secret.ipnSecret, "ipn_secret_required");
+      await tronAddress(g.address);
+    }
+  }
   await put(env, "gateway", g.id, g);
   return g;
 }
@@ -226,6 +242,9 @@ export async function createPayment(env, userId, b) {
     if (g.type === "manual") {
       p.cardNumber = g.cardNumber;
       p.cardHolder = g.cardHolder;
+    } else if (isModernGateway(g.type)) {
+      Object.assign(p, await createModernInvoice(p, g, secret,
+        g.type === "tronado" ? callback.replace("/callback/", "/notify/") : callback));
     } else if (g.type === "tetrapay") {
       const response = await apiJSON(
         "https://tetra98.com/api/create_order",
@@ -419,6 +438,10 @@ export async function verifyPayment(env, p, callback = {}) {
   if (p.status === "paid") return p;
   const g = p.gatewaySnapshot,
     secret = g.secret ? await unseal(env, g.secret) : {};
+  if (isModernGateway(p.type)) {
+    assert(["pending", "expired"].includes(p.status), "payment_requires_review", 409);
+    return settlePayment(env, p, await verifyModernInvoice(p, secret), "gateway_verify");
+  }
   if (p.type === "tetrapay") {
     assert(
       !callback.authority || constantEqual(callback.authority, p.remoteId),
@@ -706,7 +729,7 @@ export async function fundingTick(env) {
     .sort((a, b) => (a.lastChecked || 0) - (b.lastChecked || 0))
     .slice(0, 4)) {
     if (
-      ["plisio", "crypto", "iranpay3", "tetrapay"].includes(p.type) &&
+      ["plisio", "crypto", "iranpay3", "tetrapay", ...POLLED_GATEWAYS].includes(p.type) &&
       (p.type !== "crypto" || p.txHash)
     ) {
       try {
@@ -765,13 +788,20 @@ export async function handleServicePayment(request, env) {
       "unauthorized_callback",
       403,
     );
-    let body = {};
+    let body = {}, rawBody = "";
     if (request.method === "POST") {
       const type = request.headers.get("content-type") || "";
-      const text = await limitedRequestText(request);
+      const text = rawBody = await limitedRequestText(request);
       body = type.includes("application/json")
         ? JSON.parse(text)
         : Object.fromEntries(new URLSearchParams(text));
+    }
+    if (p.type === "tronado") {
+      assert(action === "notify" && request.method === "POST", "signed_webhook_required", 403);
+      const secret = await unseal(env, p.gatewaySnapshot.secret);
+      const reference = await verifyTronadoWebhook(p, secret, rawBody, request.headers.get("x-tronado-sig") || "");
+      await settlePayment(env, p, reference, "signed_webhook");
+      return Response.json({ ok: true });
     }
     const params = { ...Object.fromEntries(url.searchParams), ...body };
     if (action === "notify" && p.type === "nowpayments") {

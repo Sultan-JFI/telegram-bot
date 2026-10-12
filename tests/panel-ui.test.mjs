@@ -348,3 +348,80 @@ test("bot purpose cards can switch repeatedly away from VPN", async () => {
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(doc.querySelector('.v-profile.selected').dataset.id, 'channel');
 });
+
+/* ---------- Rates: source status instead of a bare «connection failed» ---------- */
+const ratesPayload = {
+  source: 'coingecko+gold-api+rate-json+derived',
+  stale: false,
+  derived: 4,
+  updatedAt: Date.now(),
+  labels: { tgju: { fa: 'TGJU — طلا، سکه و ارز', en: 'TGJU — gold, coins & FX' }, coingecko: { fa: 'کوین‌گکو', en: 'CoinGecko' } },
+  diagnostics: [
+    { name: 'tgju', ok: false, hits: 0, ms: 120, error: 'provider_network_error' },
+    { name: 'coingecko', ok: true, hits: 7, ms: 84 },
+    { name: 'nobitex', ok: true, hits: 3, ms: 320, via: 'jina' },
+  ],
+  gold: { gold18: { fa: 'طلای ۱۸ عیار', en: '18K Gold', unit: 'گرم', price: 23884373, change: 1.39 } },
+  fiat: { usd: { fa: 'دلار آمریکا', en: 'US Dollar', price: 233200, change: 0.65 } },
+  crypto: { usdt: { fa: 'تتر (USDT)', en: 'Tether', priceToman: 233200, priceUsd: 1, change: 0.2 } },
+};
+
+test('the live rates block names every source and flags calculated rows', () => {
+  panel = bootPanel();
+  const { doc, inject } = panel;
+  inject(`document.body.innerHTML = vRatesLiveHtml(${JSON.stringify(ratesPayload)});`);
+  const text = doc.body.textContent;
+  assert(text.includes('نرخ زنده بازار ایران'), 'the live badge stays');
+  assert(text.includes('محاسبه شده است'), 'calculated rows are explained');
+  assert(text.includes('TGJU — طلا، سکه و ارز'), 'the source label is shown');
+  assert(text.includes('از طریق رله'), 'a relayed feed says which transport delivered it');
+  assert(text.includes('provider_network_error'), 'the failure reason is visible');
+  assert.equal(text.includes('اتصال ناموفق'), false, 'a working table must not claim the market is unreachable');
+  // The status list is collapsed by default so the table stays readable.
+  const details = doc.querySelector('#v-rates-live details, details.v-media-details');
+  assert(details, 'source status is rendered as a details block');
+  assert.equal(details.open, false);
+});
+
+test('a blocked market shows which sources failed, not just a generic warning', () => {
+  panel = bootPanel();
+  const { doc, inject } = panel;
+  const offline = {
+    source: 'fallback', stale: true, derived: 0, updatedAt: Date.now(), labels: ratesPayload.labels,
+    diagnostics: [{ name: 'tgju', ok: false, hits: 0, ms: 90, error: 'provider_network_error' }],
+    gold: ratesPayload.gold, fiat: ratesPayload.fiat, crypto: ratesPayload.crypto,
+  };
+  inject(`document.body.innerHTML = vRatesLiveHtml(${JSON.stringify(offline)});`);
+  const text = doc.body.textContent;
+  assert(text.includes('اتصال ناموفق'), 'the saved-rate warning is kept for a real blackout');
+  assert(text.includes('tgju: provider_network_error'), 'the failing feed is named next to the warning');
+});
+
+test('the settings section offers a forced source check wired to its handler', () => {
+  panel = bootPanel();
+  const { doc, inject } = panel;
+  inject(`document.body.innerHTML = vRatesSettingsSection({ rates: { autoSend: { enabled: false, category: 'all', time: '09:00', destinations: [] } } });`);
+  const button = doc.querySelector('[data-act="vRatesSources"]');
+  assert(button, 'the «بررسی منابع نرخ» button exists');
+  inject('window.__sourcesAction = typeof ACTIONS.vRatesSources === "function";');
+  assert.equal(panel.win.__sourcesAction, true, 'its action is registered');
+  assert(doc.getElementById('v-rates-sources'), 'its result container exists');
+});
+
+test("modern provider and gateway fields only show relevant credentials and options", () => {
+  panel = bootPanel();
+  const { doc, inject } = panel;
+  const groups = ["pf-token", "pf-login", "pf-squads", "pf-rebecca", "pf-cf", "gw-apikey", "gw-ipn", "gw-wage", "gw-fee", "gw-address"];
+  inject(`document.body.insertAdjacentHTML('beforeend', '<div id="modern-fields">' + ${JSON.stringify(groups)}.map(g => '<div id="m-' + g + '" data-pf="' + g + '"></div>').join('') + '</div>');`);
+  const check = (type, visible) => {
+    inject(`svApplyPf('modern-fields', ${JSON.stringify(type)});`);
+    for (const group of groups)
+      assert.equal(!doc.getElementById("m-" + group).classList.contains("hidden"), visible.includes(group), type + ": " + group);
+  };
+  check("remnawave", ["pf-token", "pf-squads", "pf-cf"]);
+  check("rebecca", ["pf-token", "pf-rebecca", "pf-cf"]);
+  check("tronado", ["gw-apikey", "gw-ipn", "gw-wage", "gw-address"]);
+  check("cubepay", ["gw-apikey", "gw-fee"]);
+  check("tonpay", ["gw-apikey"]);
+  check("blupal", ["gw-apikey"]);
+});

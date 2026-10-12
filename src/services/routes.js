@@ -198,7 +198,7 @@ admin.get("/bootstrap", async (c) => {
         },
     source: {
       repository: "Mmd-Amir/Faoxima",
-      commit: "814344b017f19285574bec323d497a4612446bad",
+      commit: "015d970120df6e279546efee4ef2759df520c091",
       runtime: "Cloudflare Workers + Durable Objects SQLite",
     },
   });

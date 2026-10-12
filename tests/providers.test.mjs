@@ -83,6 +83,7 @@ test("registry advertises implemented provider families, not arbitrary methods",
     "marzban",
     "marzban_v1",
     "marzneshin",
+    "pasarguard",
     "xui",
     "xui_token",
     "alireza",
@@ -126,6 +127,63 @@ for (const type of ["marzban", "marzban_v1", "marzneshin"])
       if (type === "marzneshin") assert.deepEqual(create.data.service_ids, [1]);
     },
   );
+test("pasarguard creates users with proxy_settings, group_ids and ISO expire", async () => {
+  const { c, a } = await api("pasarguard", {
+    serviceIds: [3],
+    proxies: { vless: {} },
+  });
+  await c.create(a);
+  const create = calls.at(-1);
+  assert.equal(create.path, "/api/user");
+  assert.equal(create.method, "POST");
+  assert.equal(create.data.username, a.username);
+  assert.equal(create.data.data_limit, 2 * 1073741824);
+  assert(create.data.proxy_settings);
+  assert.deepEqual(create.data.group_ids, [3]);
+  assert.equal(typeof create.data.expire, "string");
+  assert.equal(create.headers.authorization, "Bearer api-key");
+  handler = (req) =>
+    req.path === "/api/user/" + a.username
+      ? {
+          username: a.username,
+          status: "active",
+          used_traffic: 0,
+          data_limit: a.dataLimit,
+          expire: new Date(a.expiresAt * 1000).toISOString(),
+          subscription_url: "https://provider.example.org/sub/abc",
+          links: ["vless://x@y:443"],
+        }
+      : undefined;
+  const remote = await c.get(a);
+  assert.equal(remote.username, a.username);
+  assert.equal(remote.status, "active");
+  handler = (req) =>
+    req.method === "DELETE" ? new Response(null, { status: 204 }) : undefined;
+  await c.remove(a);
+  assert.equal(calls.at(-1).path, "/api/user/" + a.username);
+});
+test("pasarguard rejects usernames outside its 3-32 lowercase rule", async () => {
+  const { p } = await api("pasarguard");
+  assert.throws(
+    () =>
+      prepareAccount(
+        p,
+        { volumeGB: 1, days: 30, options: {} },
+        "abcdef1234567890",
+        42,
+        "Bad-Name!",
+      ),
+    /invalid_service_name/,
+  );
+  const ok = prepareAccount(
+    p,
+    { volumeGB: 1, days: 30, options: {} },
+    "abcdef1234567890",
+    42,
+    "good_name_1",
+  );
+  assert.equal(ok.username, "good_name_1");
+});
 test("3x-ui cookie API uses addClient and keeps the login cookie server-side", async () => {
   const { c, a } = await api("xui", { inboundId: 7 });
   await c.create(a);

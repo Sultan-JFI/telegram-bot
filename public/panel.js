@@ -8,11 +8,11 @@
       support: 'پشتیبانی', msgTab: 'پیام متنی', pollTab: 'نظرسنجی', photoTab: 'عکس و فایل', resultsTab: 'نتایج و آمار',
       targetUsers: 'کاربران خاص', targetChat: 'کانال / گروه', usersIdsPh: 'آیدی‌های عددی با کاما — مثال: 11111111, 22222222',
       chatIdPh2: 'آیدی چت — کانال: ‎-100…، گروه: ‎-…', question: 'سؤال نظرسنجی', questionPh: 'مثلاً: کدام گزینه را می‌پسندید؟',
-      addOpt: '+ افزودن گزینه', optPh: 'گزینه…', pollHint: 'با کلیک کاربران، اعداد و نمودارها به‌صورت زنده بروزرسانی می‌شوند 📊',
+      addOpt: '+ افزودن گزینه', optPh: 'گزینه…', pollHint: 'با کلیک کاربران، اعداد و نمودارها به‌صورت زنده بروزرسانی می‌شوند',
       photoUrl: 'لینک مستقیم عکس', photoUrlPh: 'https://example.com/photo.jpg', captionPh: 'کپشن عکس (اختیاری)',
-      withReactions: 'افزودن دکمه‌های 👍 لایک / 👎 دیسلایک', photoHint: 'لینک باید مستقیم و عمومی باشد (jpg/png/gif) — شمارش لایک‌ها زنده است',
+      withReactions: 'افزودن دکمه‌های لایک / دیسلایک', photoHint: 'لینک باید مستقیم و عمومی باشد (jpg/png/gif) — شمارش لایک‌ها زنده است',
       directSent: 'ارسال فوری انجام شد', directPart: 'ارسال انجام شد اما برخی ناموفق بودند',
-      pollsList: '📊 نظرسنجی‌های اخیر', postsList: '🖼 پست‌های اخیر', noPolls: 'هنوز نظرسنجی‌ای ارسال نشده',
+      pollsList: 'نظرسنجی‌های اخیر', postsList: 'پست‌های اخیر', noPolls: 'هنوز نظرسنجی‌ای ارسال نشده',
       noPosts: 'هنوز پستی ارسال نشده', votes: 'رأی',
       supHint: 'پیام‌های کاربران از دستور /support ربات اینجا می‌رسند؛ پاسخ بدهید تا در تلگرامشان تحویل بگیرند.',
       noTickets: 'تیکتی وجود ندارد', open: 'باز', closed: 'بسته', replyPh: 'پاسخ خود را بنویسید…',
@@ -21,19 +21,20 @@
       submenus: 'زیرمنوها', subNew: '+ ساخت زیرمنو جدید', subEdit: 'ویرایش زیرمنو', subTitle: 'عنوان صفحه', subText: 'متن صفحه',
       subHint: 'دکمه‌های نوع «زیرمنو» این صفحه را باز می‌کنند. دکمه «بازگشت» خودکار است و زیرمنوها می‌توانند به هم لینک شوند (چندلایه).',
       typeSubmenu: 'زیرمنو', typeText: 'پاپ‌آپ متن', valSubmenu: 'انتخاب زیرمنو', valText: 'متن پاپ‌آپ (تا ۲۰۰ کاراکتر)',
-      backToMain: '✍️ دکمه‌های صفحه اصلی', subDelConfirm: 'این زیرمنو حذف شود؟ دکمه‌هایی که به آن لینک هستند هم پاک می‌شوند.',
-      rowLbl: 'ردیف', colLbl: 'جایگاه در ردیف (شماره ستون)', newRowOpt: '➕ ردیف جدید',
+      backToMain: 'دکمه‌های صفحه اصلی', subDelConfirm: 'این زیرمنو حذف شود؟ دکمه‌هایی که به آن لینک هستند هم پاک می‌شوند.',
+      rowLbl: 'ردیف', colLbl: 'جایگاه در ردیف (شماره ستون)', newRowOpt: 'ردیف جدید',
       addBtnTitle: 'افزودن دکمه شیشه‌ای', btnsCount: 'دکمه', pageBtns: 'دکمه‌های این صفحه', backToList: 'بازگشت به فهرست زیرمنوها',
       endOfRow: 'آخر ردیف', posHint: 'ستون ۱ = اولین جایگاه ردیف؛ خالی بگذارید تا در انتهای ردیف اضافه شود (حداکثر ۱۰ ردیف و ۸ دکمه در هر ردیف)',
       moveL: 'یک جای به عقب', moveR: 'یک جای به جلو', moveU: 'انتقال به ردیف بالاتر', moveD: 'انتقال به ردیف پایین‌تر',
       channelLock: 'قفل کانال (عضویت اجباری)', chEnable: 'فعال‌سازی — کاربر تا عضو کانال نشود ربات فعال نمی‌شود',
       chId: 'آیدی کانال — مثلاً @mychannel یا -1001234567890', chUrl: 'لینک دعوت سفارشی (اختیاری)',
-      chHint: '⚠️ ربات باید ادمین کانال باشد تا عضویت را تشخیص دهد.',
+      chHint: 'ربات باید ادمین کانال باشد تا عضویت را تشخیص دهد.',
       signIn: 'ورود', signingIn: 'در حال ورود…', loginErr: 'رمز عبور نادرست است',
       rateLimited: 'تلاش‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید', fillPassword: 'رمز عبور را وارد کنید',
+      freeTierLimit: 'سهمیهٔ روزانهٔ پلن رایگان Cloudflare تمام شده است؛ پنل و ربات ساعت ۰۰:۰۰ UTC (۰۳:۳۰ تهران) خودبه‌خود برمی‌گردند.',
       defPwHint: 'رمز ورود اولیه: <b>botpanel123</b> — بدون نیاز به متغیر؛ در اولین ورود، رمز خصوصی خود را داخل پنل تعیین کنید.',
       security: 'امنیت و رمز عبور', currentPw: 'رمز فعلی', newPw: 'رمز جدید', newPw2: 'تکرار رمز جدید',
-      changePw: 'تغییر رمز عبور', pwChanged: 'رمز عبور تغییر کرد ✓', pwMinLen: 'رمز جدید باید حداقل ۶ کاراکتر باشد',
+      changePw: 'تغییر رمز عبور', pwChanged: 'رمز عبور تغییر کرد', pwMinLen: 'رمز جدید باید حداقل ۶ کاراکتر باشد',
       pwNoMatch: 'رمزهای جدید یکسان نیستند', wrongPw: 'رمز فعلی نادرست است',
       sessionsNote: 'پس از تغییر رمز، همه دستگاه‌های دیگر از حساب خارج می‌شوند (جز همین نشست).',
       forgotPw: 'فراموشی رمز',
@@ -41,7 +42,7 @@
       dashboard: 'داشبورد', users: 'کاربران', broadcast: 'ارسال همگانی', menuBuilder: 'منو و دکمه‌ها', settings: 'تنظیمات',
       logout: 'خروج', confirmLogout: 'از پنل خارج می‌شوید؟',
       save: 'ذخیره', saved: 'ذخیره شد', cancel: 'انصراف', close: 'بستن', confirm: 'تایید', remove: 'حذف',
-      saveAllBtn: 'ذخیره همه تغییرات', allSaved: 'تمامی تغییرات ذخیره شدند', unsavedHint: 'تغییرات ذخیره‌نشده دارید', savingAll: 'در حال ذخیره…',
+      saveAllBtn: 'ذخیره همه تغییرات', allSaved: 'تمامی تغییرات ذخیره شدند', unsavedHint: 'تغییرات ذخیره‌نشده دارید', savingAll: 'در حال ذخیره…', saveFailed: 'ذخیره انجام نشد',
       refresh: 'بروزرسانی', loading: 'در حال بارگذاری…', none: '—', send: 'ارسال', sending: 'در حال ارسال…',
       errorGeneric: 'خطایی رخ داد', copy: 'کپی', copied: 'کپی شد',
       liveStatus: 'وضعیت لحظه‌ای ورکر', operational: 'فعال', offline: 'قطع', latency: 'تأخیر',
@@ -86,6 +87,10 @@
       webhookMgmt: 'مدیریت وب‌هوک', setWebhook: 'تنظیم وب‌هوک', delWebhook: 'حذف وب‌هوک',
       confirmDelWh: 'وب‌هوک حذف شود؟ ربات پیام‌ها را دریافت نخواهد کرد.',
       webhookSetOk: 'وب‌هوک با موفقیت تنظیم شد', webhookDelOk: 'وب‌هوک حذف شد',
+      webhookWarnTitle: 'هشدار: وب‌هوک تنظیم نشده است',
+      webhookWarnBody: 'توکن و آیدی عددی ذخیره شد، اما تا زمانی که از بخش «مدیریت وب‌هوک» دکمه «تنظیم وب‌هوک» را نزنید، ربات هیچ پیامی دریافت نمی‌کند و کار نخواهد کرد.',
+      webhookGoSet: 'رفتن به مدیریت وب‌هوک',
+      webhookNeeded: 'برای فعال شدن ربات، ابتدا وب‌هوک را تنظیم کنید — در غیر این صورت ربات کار نمی‌کند.',
       panelPrefs: 'تنظیمات پنل', appearance: 'پوسته', dark: 'تیره', light: 'روشن', themeOcean: 'اقیانوس', themeViolet: 'بنفش', themeForest: 'جنگل', themeSunset: 'غروب', language: 'زبان',
       expandAll: 'باز کردن همه', collapseAll: 'بستن همه',
       startText: 'متن شروع (/start)', helpText: 'راهنما (/help)', recentHist: 'ارسال‌های اخیر',
@@ -103,11 +108,11 @@
       support: 'Support', msgTab: 'Text message', pollTab: 'Poll', photoTab: 'Photo & file', resultsTab: 'Results & stats',
       targetUsers: 'Specific users', targetChat: 'Channel / Group', usersIdsPh: 'Numeric IDs, comma-separated — e.g. 11111111, 22222222',
       chatIdPh2: 'Chat ID — channel: -100…, group: -…', question: 'Poll question', questionPh: 'e.g. Which option do you prefer?',
-      addOpt: '+ Add option', optPh: 'Option…', pollHint: 'Counts and bars update live as users vote 📊',
+      addOpt: '+ Add option', optPh: 'Option…', pollHint: 'Counts and bars update live as users vote',
       photoUrl: 'Direct photo URL', photoUrlPh: 'https://example.com/photo.jpg', captionPh: 'Photo caption (optional)',
-      withReactions: 'Add 👍 like / 👎 dislike buttons', photoHint: 'URL must be direct and public (jpg/png/gif) — like counts are live',
+      withReactions: 'Add like / dislike buttons', photoHint: 'URL must be direct and public (jpg/png/gif) — like counts are live',
       directSent: 'Sent immediately', directPart: 'Sent, but some deliveries failed',
-      pollsList: '📊 Recent polls', postsList: '🖼 Recent posts', noPolls: 'No polls sent yet',
+      pollsList: 'Recent polls', postsList: 'Recent posts', noPolls: 'No polls sent yet',
       noPosts: 'No posts sent yet', votes: 'votes',
       supHint: 'Messages sent via /support in the bot arrive here; reply and they are delivered in the user’s Telegram.',
       noTickets: 'No tickets', open: 'Open', closed: 'Closed', replyPh: 'Write your reply…',
@@ -116,19 +121,20 @@
       submenus: 'Submenus', subNew: '+ New submenu', subEdit: 'Edit submenu', subTitle: 'Page title', subText: 'Page text',
       subHint: 'Buttons of type “submenu” open this page. A back button is added automatically and submenus can link to each other (multi-level).',
       typeSubmenu: 'Submenu', typeText: 'Text popup', valSubmenu: 'Choose submenu', valText: 'Popup text (up to 200 chars)',
-      backToMain: '✍️ Main-page buttons', subDelConfirm: 'Delete this submenu? Buttons linking to it will be removed too.',
-      rowLbl: 'Row', colLbl: 'Position in row (column #)', newRowOpt: '➕ New row',
+      backToMain: 'Main-page buttons', subDelConfirm: 'Delete this submenu? Buttons linking to it will be removed too.',
+      rowLbl: 'Row', colLbl: 'Position in row (column #)', newRowOpt: 'New row',
       addBtnTitle: 'Add inline button', btnsCount: 'buttons', pageBtns: 'Buttons of this page', backToList: 'Back to submenu list',
       endOfRow: 'End of row', posHint: 'Column 1 = first slot of the row; leave empty to append at the end (max 10 rows, 8 buttons per row)',
       moveL: 'Move back one slot', moveR: 'Move forward one slot', moveU: 'Move to the row above', moveD: 'Move to the row below',
       channelLock: 'Channel lock (force-subscribe)', chEnable: 'Enable — the bot stays locked until the user joins',
       chId: 'Channel ID — e.g. @mychannel or -1001234567890', chUrl: 'Custom invite link (optional)',
-      chHint: '⚠️ The bot must be an admin of the channel to detect membership.',
+      chHint: 'The bot must be an admin of the channel to detect membership.',
       signIn: 'Sign in', signingIn: 'Signing in…', loginErr: 'Incorrect password',
       rateLimited: 'Too many attempts; try again in a few minutes', fillPassword: 'Please enter the password',
+      freeTierLimit: 'Cloudflare\'s free-plan daily allowance is used up; the panel and the bot come back by themselves at 00:00 UTC.',
       defPwHint: 'Initial password: <b>botpanel123</b> — no environment variable required. Set your private password on first login.',
       security: 'Security & password', currentPw: 'Current password', newPw: 'New password', newPw2: 'Repeat new password',
-      changePw: 'Change password', pwChanged: 'Password changed ✓', pwMinLen: 'New password must be at least 6 characters',
+      changePw: 'Change password', pwChanged: 'Password changed', pwMinLen: 'New password must be at least 6 characters',
       pwNoMatch: 'New passwords do not match', wrongPw: 'Current password is incorrect',
       sessionsNote: 'After changing the password, all other devices are signed out (except this session).',
       forgotPw: 'Forgot password',
@@ -136,7 +142,7 @@
       dashboard: 'Dashboard', users: 'Users', broadcast: 'Broadcast', menuBuilder: 'Menus & Buttons', settings: 'Settings',
       logout: 'Log out', confirmLogout: 'Log out of the panel?',
       save: 'Save', saved: 'Saved', cancel: 'Cancel', close: 'Close', confirm: 'Confirm', remove: 'Remove',
-      saveAllBtn: 'Save all changes', allSaved: 'All changes saved', unsavedHint: 'You have unsaved changes', savingAll: 'Saving…',
+      saveAllBtn: 'Save all changes', allSaved: 'All changes saved', unsavedHint: 'You have unsaved changes', savingAll: 'Saving…', saveFailed: 'Save failed',
       refresh: 'Refresh', loading: 'Loading…', none: '—', send: 'Send', sending: 'Sending…',
       errorGeneric: 'Something went wrong', copy: 'Copy', copied: 'Copied',
       liveStatus: 'Worker live status', operational: 'Operational', offline: 'Offline', latency: 'Latency',
@@ -181,6 +187,10 @@
       webhookMgmt: 'Webhook management', setWebhook: 'Set webhook', delWebhook: 'Delete webhook',
       confirmDelWh: 'Delete the webhook? The bot will stop receiving updates.',
       webhookSetOk: 'Webhook configured successfully', webhookDelOk: 'Webhook deleted',
+      webhookWarnTitle: 'Warning: webhook is not configured',
+      webhookWarnBody: 'The token and numeric ID were saved, but the bot will not receive any messages — and will not work at all — until you press “Set webhook” in “Webhook management”.',
+      webhookGoSet: 'Go to webhook management',
+      webhookNeeded: 'Set the webhook first to activate the bot — otherwise it will not work.',
       panelPrefs: 'Panel preferences', appearance: 'Theme', dark: 'Dark', light: 'Light', themeOcean: 'Ocean', themeViolet: 'Violet', themeForest: 'Forest', themeSunset: 'Sunset', language: 'Language',
       expandAll: 'Expand all', collapseAll: 'Collapse all',
       startText: 'Start text (/start)', helpText: 'Help (/help)', recentHist: 'Recent sends',
@@ -201,6 +211,7 @@
     timers: [],
     live: { state: 'unknown', ms: null, colo: null, at: null },
     saveBar: 'idle',
+    saveBarError: '',
     savingAll: false,
   };
   const ROUTES = ['dashboard', 'studio', 'users', 'broadcast', 'support', 'menu', 'settings'];
@@ -369,15 +380,16 @@
       throw new Error(t('relogin'));
     }
     if (d.error === 'password_change_required') { S.mustChangePassword = true; render(); }
+    if (d.error === 'cloudflare_free_tier_limit') throw new Error(t('freeTierLimit'));
     if (!res.ok || d.ok === false) throw new Error(d.error || ('HTTP ' + res.status));
     return d.data;
   }
 
   let _lastToast = null;
   function toast(msg, type = 'info') {
-    // Save-all runs every section action back-to-back; their individual success
-    // notices must not stack. Only the single "all saved" message remains.
-    if (S.savingAll && type === 'success') return;
+    // Save-all runs every section action back-to-back and single saves report
+    // inside the save bar; those success notices must not stack as toasts.
+    if (type === 'success' && (S.savingAll || S.saveBar === 'saving')) return;
     const now = Date.now();
     // Identical back-to-back toasts (double taps, retried saves) collapse into one.
     if (_lastToast && _lastToast.msg === msg && _lastToast.type === type && now - _lastToast.at < 1500) {
@@ -523,7 +535,7 @@
     fetch('/api/auth/default-status').then((x) => x.json()).then((j) => {
       if (j && j.ok && j.data.defaultActive) {
         const h = $('def-pw-hint');
-        if (h) { h.innerHTML = '🔑 ' + t('defPwHint'); h.classList.remove('hidden'); }
+        if (h) { h.innerHTML = '<i data-lucide="key-round" class="w-3.5 h-3.5 inline-block align-middle me-1"></i>' + t('defPwHint'); h.classList.remove('hidden'); refreshIcons(); }
       }
     }).catch(() => {});
   }
@@ -550,11 +562,11 @@
       sessionStorage.setItem('bp_token', d.token);
       S.mustChangePassword = !!d.requiresPasswordChange;
       if (S.mustChangePassword) { render(); return; }
-      toast(t('signIn') + ' ✓', 'success');
+      toast(t('signIn'), 'success');
       await initV2();
       render();
     } catch (e) {
-      err.textContent = e.message === 'invalid_credentials' ? t('loginErr') : e.message === 'rate_limited' ? t('rateLimited') : e.message === 'admin_password_secret_required' ? (S.lang === 'fa' ? 'نسخه سرور قدیمی است؛ نسخه جدید ورود اولیه بدون متغیر را پشتیبانی می‌کند.' : 'The server is outdated; the new version supports initial login without environment variables.') : e.message;
+      err.textContent = e.message === 'invalid_credentials' ? t('loginErr') : e.message === 'rate_limited' ? t('rateLimited') : e.message === 'cloudflare_free_tier_limit' ? t('freeTierLimit') : e.message === 'admin_password_secret_required' ? (S.lang === 'fa' ? 'نسخه سرور قدیمی است؛ نسخه جدید ورود اولیه بدون متغیر را پشتیبانی می‌کند.' : 'The server is outdated; the new version supports initial login without environment variables.') : e.message;
       err.classList.remove('hidden');
       btn.disabled = false;
       btn.innerHTML = '<i data-lucide="log-in" class="w-4 h-4"></i>' + t('signIn');
@@ -710,7 +722,7 @@
         '<div class="flex items-center gap-3 py-2">' +
         '<div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">' + esc((u.firstName || '?').slice(0, 1).toUpperCase()) + '</div>' +
         '<div class="min-w-0 flex-1"><div class="text-sm font-medium truncate">' + esc(u.firstName || u.id) +
-        (u.banned ? ' <span class="text-[10px] text-rose-500 font-bold">⛔</span>' : '') + '</div>' +
+        (u.banned ? ' <i data-lucide="shield-off" class="w-3 h-3 inline-block align-middle text-rose-500"></i>' : '') + '</div>' +
         '<div class="text-[11px] text-slate-400">' + (u.username ? '@' + esc(u.username) + ' · ' : '') + fmtDate(u.joinedAt) + '</div></div></div>'
       ).join('');
       $('recent-list').innerHTML = rec || '<p class="text-sm text-slate-400 text-center py-6">' + t('noUsersYet') + '</p>';
@@ -944,10 +956,10 @@
       '<div id="bc-hist-' + kind + '"><div class="py-4 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block"></i></div></div></div>';
   }
   function bcResultsBody() {
-    return '<div class="flex items-center justify-between mb-3"><h3 class="font-bold text-sm">' + t('pollsList') + '</h3>' +
+    return '<div class="flex items-center justify-between mb-3"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-500"></i>' + t('pollsList') + '</h3>' +
       '<button data-act="engRefresh" class="' + CLS.iconBtn + '"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button></div>' +
       '<div id="eng-polls" class="space-y-3"></div>' +
-      '<div class="flex items-center justify-between mb-3 mt-6"><h3 class="font-bold text-sm">' + t('postsList') + '</h3></div>' +
+      '<div class="flex items-center justify-between mb-3 mt-6"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="image" class="w-4 h-4 text-brand-500"></i>' + t('postsList') + '</h3></div>' +
       '<div id="eng-posts" class="space-y-3"></div>';
   }
   function renderBroadcast() {
@@ -968,7 +980,7 @@
       '<label class="' + CLS.label + ' mt-4">' + t('pollTab') + '</label>' +
       '<div id="poll-opts" class="space-y-2"></div>' +
       '<button data-act="pollAddOpt" class="' + CLS.btnS + ' mt-3 text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addOpt') + '</button>' +
-      '<p class="text-[11px] text-slate-400 mt-3">' + t('pollHint') + '</p>' +
+      '<p class="text-[11px] text-slate-400 mt-3 flex items-center gap-1.5"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5 shrink-0"></i><span>' + t('pollHint') + '</span></p>' +
       bcSendBtn('poll') + bcMiniHist('poll');
     const photoBody =
       '<label class="' + CLS.label + '">' + t('photoUrl') + '</label>' +
@@ -976,7 +988,7 @@
       '<label class="' + CLS.label + ' mt-4">' + t('captionPh') + '</label>' +
       '<textarea id="ph-cap" rows="3" maxlength="1024" class="' + CLS.input + '"></textarea>' +
       '<label class="flex items-center gap-2.5 mt-4 text-sm cursor-pointer">' +
-      '<input id="ph-react" type="checkbox" checked class="w-4 h-4 accent-brand-500">' + t('withReactions') + '</label>' +
+      '<input id="ph-react" type="checkbox" checked class="w-4 h-4 accent-brand-500"><i data-lucide="thumbs-up" class="w-4 h-4 text-brand-500 shrink-0"></i><span>' + t('withReactions') + '</span></label>' +
       '<p class="text-[11px] text-slate-400 mt-3">' + t('photoHint') + '</p>' +
       bcSendBtn('photo') + bcMiniHist('photo');
     const histBody =
@@ -1025,7 +1037,7 @@
       ph.innerHTML = (d.polls || []).length ? d.polls.map((p) => {
         const total = p.total || 0;
         return '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-4">' +
-          '<p class="text-sm font-semibold mb-2">📊 ' + esc(p.q) + '</p>' +
+          '<p class="text-sm font-semibold mb-2 flex items-center gap-1.5"><i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-500 shrink-0"></i><span>' + esc(p.q) + '</span></p>' +
           '<div class="space-y-1.5">' + p.opts.map((o) => {
             const pct = total ? Math.round((o.n * 100) / total) : 0;
             return '<div class="flex items-center gap-2 text-xs"><span class="w-28 truncate">' + esc(o.label) + '</span>' +
@@ -1039,7 +1051,7 @@
         '<img src="' + esc(p.photo) + '" alt="" class="w-12 h-12 rounded-lg object-cover" onerror="this.style.visibility=\'hidden\'">' +
         '<div class="flex-1 min-w-0"><p class="text-sm truncate">' + esc(p.caption || '—') + '</p>' +
         '<p class="text-[11px] text-slate-400">' + fmtDate(p.createdAt) + '</p></div>' +
-        '<div class="flex items-center gap-2 text-xs font-bold"><span class="text-emerald-500">👍 ' + fmtNum(p.likes) + '</span><span class="text-rose-500">👎 ' + fmtNum(p.dislikes) + '</span></div></div>'
+        '<div class="flex items-center gap-3 text-xs font-bold"><span class="text-emerald-500 flex items-center gap-1"><i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>' + fmtNum(p.likes) + '</span><span class="text-rose-500 flex items-center gap-1"><i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>' + fmtNum(p.dislikes) + '</span></div></div>'
       ).join('') : '<p class="text-sm text-slate-400 text-center py-4">' + t('noPosts') + '</p>';
     } catch (e) {   }
   }
@@ -1076,7 +1088,8 @@
   }
 
   function bcHistRow(j) {
-    const fb = j.kind === 'poll' ? '📊 ' + t('pollTab') : j.kind === 'photo' ? '🖼 ' + t('photoTab') : t('msgTab');
+    const fbIcon = j.kind === 'poll' ? '<i data-lucide="bar-chart-3" class="w-3.5 h-3.5 inline-block align-middle me-1 text-brand-500"></i>' : j.kind === 'photo' ? '<i data-lucide="image" class="w-3.5 h-3.5 inline-block align-middle me-1 text-brand-500"></i>' : '<i data-lucide="type" class="w-3.5 h-3.5 inline-block align-middle me-1 text-brand-500"></i>';
+    const fb = fbIcon + (j.kind === 'poll' ? t('pollTab') : j.kind === 'photo' ? t('photoTab') : t('msgTab'));
     return '<div class="flex items-start gap-3 py-3 border-b last:border-0 border-slate-100 dark:border-slate-800">' +
       '<div class="flex-1 min-w-0">' +
       '<p class="text-sm line-clamp-1" style="display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">' + esc((j.text || j.caption || fb).slice(0, 90)) + '</p>' +
@@ -1358,10 +1371,10 @@
   }
 
   const BTN_TYPES = [
-    ['url', '🔗 ' + t('typeUrl')],
-    ['callback', '⚡ ' + t('typeCallback')],
-    ['submenu', '📂 ' + t('typeSubmenu')],
-    ['text', '💬 ' + t('typeText')],
+    ['url', t('typeUrl')],
+    ['callback', t('typeCallback')],
+    ['submenu', t('typeSubmenu')],
+    ['text', t('typeText')],
   ];
 
   function ctxButtons() {
@@ -1517,7 +1530,7 @@
         '<div class="flex items-center justify-between mb-4">' +
         '<button data-act="subBack" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">← ' + t('backToList') + '</button>' +
         '<button data-act="subDel" data-id="' + esc(MU.sub) + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400" title="' + t('remove') + '"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>' +
-        '<span class="' + CLS.chip + ' bg-brand-500/10 text-brand-600 dark:text-brand-400 mb-3 inline-flex">📂 ' + t('subEdit') + ' — <span dir="ltr">' + esc(MU.sub) + '</span></span>' +
+        '<span class="' + CLS.chip + ' bg-brand-500/10 text-brand-600 dark:text-brand-400 mb-3 inline-flex"><i data-lucide="folder-pen" class="w-3.5 h-3.5"></i>' + t('subEdit') + ' — <span dir="ltr">' + esc(MU.sub) + '</span></span>' +
         '<div class="grid sm:grid-cols-2 gap-4 mt-3">' +
         '<div><label class="' + CLS.label + '">' + t('subTitle') + '</label><input id="sm-title" class="' + CLS.input + '" maxlength="64" value="' + esc(sm.title) + '"></div>' +
         '<div><label class="' + CLS.label + '">' + t('subText') + '</label><input id="sm-text" class="' + CLS.input + '" value="' + esc(sm.text) + '"></div></div>' +
@@ -1527,7 +1540,7 @@
     } else {
       const subs = Object.entries(m.submenus || {}).map(([id, sm]) =>
         '<div class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2">' +
-        '<span class="text-sm flex-1 truncate">📂 ' + esc(sm.title || id) + ' <span class="text-[10px] text-slate-400" dir="ltr">' + esc(id) + '</span></span>' +
+        '<span class="text-sm flex-1 truncate flex items-center gap-1.5"><i data-lucide="folder" class="w-4 h-4 text-brand-500 shrink-0"></i><span class="truncate">' + esc(sm.title || id) + '</span>' + ' <span class="text-[10px] text-slate-400" dir="ltr">' + esc(id) + '</span></span>' +
         '<span class="text-[10px] text-slate-400">' + fmtNum((sm.buttons || []).flat().length) + ' ' + t('btnsCount') + '</span>' +
         '<button data-act="subEditBtn" data-id="' + esc(id) + '" class="' + CLS.iconBtn + ' !p-1.5" title="' + t('subEdit') + '"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>' +
         '<button data-act="subDel" data-id="' + esc(id) + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>'
@@ -1590,7 +1603,7 @@
       '<span class="w-6 h-6 rounded-lg" style="background:' + accent + '"></span></span>' +
       '<span class="flex items-center gap-1 font-bold"><i data-lucide="' + icon + '" class="w-3.5 h-3.5"></i>' + label + '</span></button>';
   }
-  const ACC_DEF = { set: ['general'], bc: ['target', 'text'], menu: ['start'] };
+  const ACC_DEF = {};
   function accOpen(group, id, fallback) {
     try {
       const s = JSON.parse(localStorage.getItem('bp_acc_' + group) || '{}');
@@ -1740,6 +1753,7 @@
       '<button id="sec-all-btn" data-act="secAll" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">' + (allOpen ? t('collapseAll') : t('expandAll')) + '</button></div>' +
       '<div class="grid lg:grid-cols-2 gap-4 items-start">' +
       secCard('general', 'bot', t('botSettings'),
+      '<div id="st-wh-warn" class="mb-4"></div>' +
       '<div class="mb-4"><label class="' + CLS.label + '">' + t('botToken') + '</label>' +
       '<p id="st-token-cur" class="text-xs mb-2 break-all"></p>' +
       '<input id="st-token-in" dir="ltr" type="password" autocomplete="off" placeholder="123456:ABC-DEF…" class="' + CLS.input + '">' +
@@ -1778,7 +1792,7 @@
       '<input id="st-ch-id" dir="ltr" placeholder="@mychannel" class="' + CLS.input + '"></div>' +
       '<div class="mb-3"><label class="' + CLS.label + '">' + t('chUrl') + '</label>' +
       '<input id="st-ch-url" dir="ltr" placeholder="https://t.me/…" class="' + CLS.input + '"></div>' +
-      '<p class="text-[11px] text-slate-400">' + t('chHint') + '</p>' +
+      '<p class="text-[11px] text-slate-400 flex items-center gap-1.5"><i data-lucide="triangle-alert" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i><span>' + t('chHint') + '</span></p>' +
       '<button data-act="saveChannel" class="' + CLS.btnP + ' mt-4"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button>') +
       secCard('webhook', 'webhook', t('webhookMgmt'),
       '<div id="st-wh-box" class="mb-4"><div class="py-4 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block"></i></div></div>' +
@@ -1811,6 +1825,45 @@
     loadSettings();
   }
 
+  function paintWebhookWarning(st, wh) {
+    const host = $('st-wh-warn');
+    if (!host) return;
+    const needsWebhook = st && st.hasToken && !(wh && wh.configured);
+    host.innerHTML = needsWebhook
+      ? '<div class="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3.5 flex items-start gap-2.5">' +
+        '<i data-lucide="triangle-alert" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>' +
+        '<div class="min-w-0"><p class="text-xs font-bold text-amber-600 dark:text-amber-400">' + t('webhookWarnTitle') + '</p>' +
+        '<p class="text-[11px] text-slate-500 dark:text-slate-400 leading-5 mt-1">' + t('webhookNeeded') + '</p>' +
+        '<button data-act="gotoWebhook" class="' + CLS.btnS + ' !py-1.5 !px-3 !text-xs mt-2.5"><i data-lucide="plug-zap" class="w-3.5 h-3.5"></i>' + t('webhookGoSet') + '</button></div></div>'
+      : '';
+    refreshIcons();
+  }
+  function gotoWebhookSection() {
+    const box = document.querySelector('section[data-acc="set:webhook"]');
+    if (box) {
+      box.classList.add('open');
+      accSet('set', 'webhook', true);
+      const head = box.querySelector('[data-act="accToggle"]');
+      if (head) head.setAttribute('aria-expanded', 'true');
+      paintSecAll();
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      box.classList.add('ring-2', 'ring-amber-500/60');
+      setTimeout(() => box.classList.remove('ring-2', 'ring-amber-500/60'), 2600);
+    }
+  }
+  function webhookWarningModal() {
+    openModal(
+      '<div class="p-6">' +
+      '<div class="flex items-start gap-3 mb-4"><span class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0"><i data-lucide="triangle-alert" class="w-5 h-5"></i></span>' +
+      '<div><h3 class="font-bold">' + t('webhookWarnTitle') + '</h3>' +
+      '<p class="text-sm text-slate-500 dark:text-slate-400 leading-6 mt-1.5">' + t('webhookWarnBody') + '</p></div></div>' +
+      '<div class="flex flex-wrap justify-end gap-2">' +
+      '<button data-act="modalClose" class="' + CLS.btnS + '">' + t('close') + '</button>' +
+      '<button data-act="gotoWebhook" class="' + CLS.btnP + '"><i data-lucide="plug-zap" class="w-4 h-4"></i>' + t('webhookGoSet') + '</button>' +
+      '</div></div>'
+    );
+  }
+
   async function loadSettings() {
     try {
       const [s, dash] = await Promise.all([
@@ -1819,10 +1872,13 @@
       ]);
       const st = s.settings;
       $('st-token-cur').innerHTML = st.hasToken
-        ? '<span class="text-emerald-500 font-semibold">✓ ' + t('tokenStored') + '</span> <span class="font-mono text-slate-400" dir="ltr">' + esc(st.tokenMasked) + '</span>'
-        : '<span class="text-amber-500 font-semibold">⚠ ' + t('tokenMissingWarn') + '</span>';
+        ? '<span class="text-emerald-500 font-semibold inline-flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i>' + t('tokenStored') + '</span> <span class="font-mono text-slate-400" dir="ltr">' + esc(st.tokenMasked) + '</span>'
+        : '<span class="text-amber-500 font-semibold inline-flex items-center gap-1.5"><i data-lucide="triangle-alert" class="w-4 h-4"></i>' + t('tokenMissingWarn') + '</span>';
       $('st-langmode').value = st.botLangMode || 'both';
-      if ($('st-admin-id')) $('st-admin-id').value = st.adminId || '';
+      if ($('st-admin-id')) {
+        $('st-admin-id').value = st.adminId || '';
+        $('st-admin-id').dataset.orig = st.adminId || '';
+      }
       $('st-lang').value = st.defaultLang || 'fa';
       const dw = $('deflang-wrap');
       if (dw) dw.classList.toggle('hidden', (st.botLangMode || 'both') !== 'both');
@@ -1837,8 +1893,10 @@
       $('st-ch-id').value = rc.chatId || '';
       $('st-ch-url').value = rc.url || '';
       if (dash && $('st-wh-box')) $('st-wh-box').innerHTML = whBoxHtml(dash.webhook);
+      paintWebhookWarning(st, dash && dash.webhook);
       paintPrefs();
       paintDropdowns();
+      refreshIcons();
     } catch (e) { toast(e.message, 'error'); }
   }
 
@@ -2090,10 +2148,19 @@
       };
       const tk = $('st-token-in').value.trim();
       if (tk) body.botToken = tk;
+      const touchedIdentity = !!(tk || (body.adminId && $('st-admin-id').dataset.orig !== body.adminId));
       await api('/settings', { method: 'PUT', body });
       $('st-token-in').value = '';
       toast(t('saved'), 'success');
-      loadSettings();
+      await loadSettings();
+      // A saved token alone never activates the bot: without a webhook Telegram
+      // has nowhere to deliver updates, so warn loudly and only once per save.
+      if (touchedIdentity) {
+        try {
+          const dash = await api('/dashboard/stats');
+          if (!(dash && dash.webhook && dash.webhook.configured)) webhookWarningModal();
+        } catch (e) { webhookWarningModal(); }
+      }
     },
     saveChannel: async () => {
       await api('/settings', {
@@ -2132,6 +2199,7 @@
       }
       btn.disabled = false;
     },
+    gotoWebhook: () => { closeModal(); gotoWebhookSection(); },
     setWebhook: async (d) => {
       if (d.action === 'delete' && !(await confirmDlg(t('confirmDelWh'), t('delWebhook')))) return;
       try {
@@ -2145,69 +2213,129 @@
   function syncMenuSafe() { try { syncMenuDom(); } catch (e) {} }
 
   // ===== Bottom save-bar: one button that persists every saveable section of the
-  // current route, with an inline "all changes saved" confirmation.
+  // current route. Every save result is reported inside the bar itself, next to the
+  // button: green for "saved" / "all changes saved", red when a save failed.
   const SAVE_ACT_RE = /^(save[A-Z]|vSave|sv[A-Za-z]*Save)/;
   const SAVE_ALL_EXCLUDE = ['vSavePurpose']; // structural action guarded by a confirm dialog
+  const SAVE_MSG_CLS = {
+    idle: 'text-slate-500 dark:text-slate-400',
+    dirty: 'text-amber-600 dark:text-amber-400',
+    saving: 'text-brand-600 dark:text-brand-400',
+    saved: 'text-emerald-600 dark:text-emerald-400',
+    savedAll: 'text-emerald-600 dark:text-emerald-400',
+    error: 'text-rose-600 dark:text-rose-400',
+  };
+  const SAVE_MSG_ICON = { dirty: 'circle-dot', saving: 'loader-2', saved: 'check-circle-2', savedAll: 'check-circle-2', error: 'alert-circle' };
   function saveAllActions() {
     const view = $('view');
     if (!view || !S.token || S.mustChangePassword) return [];
     const acts = [];
     view.querySelectorAll('[data-act]').forEach((el) => {
       const a = el.getAttribute('data-act') || '';
-      if (SAVE_ALL_EXCLUDE.includes(a) || acts.includes(a) || el.disabled) return;
+      // A button disabled by the in-flight busy lock still counts: the route's
+      // save actions must be discoverable while one of them is saving.
+      if (SAVE_ALL_EXCLUDE.includes(a) || acts.includes(a) || (el.disabled && !el.dataset.busy)) return;
       if (SAVE_ACT_RE.test(a) && typeof ACTIONS[a] === 'function') acts.push(a);
     });
     return acts;
+  }
+  // Renders the bar for the current state; called after every state change.
+  function paintSaveBar() {
+    const bar = $('save-bar');
+    const m = $('save-bar-msg');
+    if (!bar || !m) return;
+    const state = S.saveBar;
+    const text = state === 'saved' ? t('saved')
+      : state === 'savedAll' ? t('allSaved')
+      : state === 'dirty' ? t('unsavedHint')
+      : state === 'saving' ? t('savingAll')
+      : state === 'error' ? (S.saveBarError || t('saveFailed'))
+      : '';
+    m.className = 'flex-1 min-w-0 text-xs font-semibold leading-5 ' + (SAVE_MSG_CLS[state] || SAVE_MSG_CLS.idle);
+    const icon = SAVE_MSG_ICON[state];
+    m.innerHTML = text
+      ? (icon ? '<i data-lucide="' + icon + '" class="' + (state === 'saving' ? 'animate-spin' : '') + '"></i>' : '') +
+        '<span class="min-w-0">' + esc(text) + '</span>'
+      : '';
+    bar.classList.toggle('bp-ok', state === 'saved' || state === 'savedAll');
+    bar.classList.toggle('bp-err', state === 'error');
+    if (icon) refreshIcons();
+  }
+  let saveBarTimer = null;
+  function saveBarClearTimer() { clearTimeout(saveBarTimer); saveBarTimer = null; }
+  function saveBarAutoIdle(ms) {
+    saveBarClearTimer();
+    saveBarTimer = setTimeout(() => {
+      if (S.saveBar === 'saved' || S.saveBar === 'savedAll') { S.saveBar = 'idle'; paintSaveBar(); }
+    }, ms);
   }
   function updateSaveBar() {
     const bar = $('save-bar');
     if (!bar) return;
     const acts = saveAllActions();
     bar.classList.toggle('hidden', acts.length === 0);
+    document.body.classList.toggle('bp-savebar-open', acts.length > 0);
     const lbl = $('save-bar-btn-label');
     if (lbl) lbl.textContent = t('saveAllBtn');
-    const m = $('save-bar-msg');
-    if (!acts.length) { S.saveBar = 'idle'; if (m) m.textContent = ''; return; }
-    if (m) m.textContent = S.saveBar === 'saved' ? t('allSaved') : S.saveBar === 'dirty' ? t('unsavedHint') : '';
+    if (!acts.length) { S.saveBar = 'idle'; S.saveBarError = ''; }
+    paintSaveBar();
   }
   function saveBarDirty() {
     if (!saveAllActions().length) return;
-    if (S.saveBar === 'saved') clearTimeout(saveBarSaved.timer);
+    saveBarClearTimer();
     S.saveBar = 'dirty';
-    const m = $('save-bar-msg');
-    if (m) m.textContent = t('unsavedHint');
+    S.saveBarError = '';
+    paintSaveBar();
   }
+  // A single section saved successfully: green "saved" inside the bar.
+  function saveBarSectionSaved() {
+    if (!saveAllActions().length || S.savingAll) return;
+    S.saveBar = 'saved';
+    S.saveBarError = '';
+    paintSaveBar();
+    saveBarAutoIdle(5000);
+  }
+  // "Save all changes" finished: green "all changes saved".
   function saveBarSaved() {
     if (!saveAllActions().length) return;
-    S.saveBar = 'saved';
-    const m = $('save-bar-msg');
-    if (m) m.textContent = t('allSaved');
-    clearTimeout(saveBarSaved.timer);
-    saveBarSaved.timer = setTimeout(() => { S.saveBar = 'idle'; updateSaveBar(); }, 4000);
+    S.saveBar = 'savedAll';
+    S.saveBarError = '';
+    paintSaveBar();
+    saveBarAutoIdle(6000);
   }
-  // A single-section save reports its own toast; the bar resets silently so no
-  // second "all saved" message appears.
+  // A save failed: the bar says so in red and keeps saying it until the next edit.
+  function saveBarError(message) {
+    if (!saveAllActions().length) return;
+    saveBarClearTimer();
+    S.saveBar = 'error';
+    S.saveBarError = message ? String(message) : '';
+    paintSaveBar();
+  }
+  // Kept for callers that only want to drop the previous result.
   function saveBarReset() {
     if (!saveAllActions().length) return;
+    saveBarClearTimer();
     S.saveBar = 'idle';
-    clearTimeout(saveBarSaved.timer);
-    const m = $('save-bar-msg');
-    if (m) m.textContent = '';
+    S.saveBarError = '';
+    paintSaveBar();
   }
   ACTIONS.saveAll = async () => {
     const acts = saveAllActions();
     if (!acts.length) return;
     const btn = $('save-bar-btn');
     if (btn) btn.disabled = true;
-    const m = $('save-bar-msg');
-    if (m) m.textContent = t('savingAll');
+    saveBarClearTimer();
+    S.saveBar = 'saving';
+    S.saveBarError = '';
+    paintSaveBar();
     S.savingAll = true;
     try {
       for (const a of acts) await ACTIONS[a]({}, null);
       saveBarSaved();
     } catch (e) {
-      if (m) m.textContent = t('unsavedHint');
-      toast(typeof vError === 'function' ? vError(e.message) : e.message, 'error');
+      const msg = typeof vError === 'function' ? vError(e.message) : e.message;
+      saveBarError(msg);
+      toast(msg, 'error');
     } finally {
       S.savingAll = false;
       if (btn && btn.isConnected) btn.disabled = false;
@@ -2256,19 +2384,32 @@
     const fn = ACTIONS[act];
     if (fn && !el.disabled && !el.dataset.busy) {
       e.preventDefault();
+      // The bar switches to "saving…" before the action runs so the action's own
+      // success toast can be suppressed in favour of the in-bar message.
+      const isSave = act !== 'saveAll' && SAVE_ACT_RE.test(act);
       let ret;
-      try { ret = fn(el.dataset, el); } catch (err) { toast(typeof vError === 'function' ? vError(err.message) : err.message, 'error'); return; }
+      if (isSave && !S.savingAll) { saveBarClearTimer(); S.saveBar = 'saving'; S.saveBarError = ''; paintSaveBar(); }
+      try { ret = fn(el.dataset, el); } catch (err) {
+        const msg = typeof vError === 'function' ? vError(err.message) : err.message;
+        if (isSave) saveBarError(msg);
+        toast(msg, 'error');
+        return;
+      }
       if (ret && typeof ret.then === 'function') {
         // Async action: hold a busy lock on the button so a double-tap cannot
         // run it twice; the lock releases only after the promise settles.
         el.dataset.busy = '1';
         el.disabled = true;
         Promise.resolve(ret)
-          .then(() => { if (act !== 'saveAll' && SAVE_ACT_RE.test(act)) saveBarReset(); })
-          .catch(err => toast(typeof vError === 'function' ? vError(err.message) : err.message, 'error'))
+          .then(() => { if (isSave) saveBarSectionSaved(); })
+          .catch(err => {
+            const msg = typeof vError === 'function' ? vError(err.message) : err.message;
+            if (isSave) saveBarError(msg);
+            toast(msg, 'error');
+          })
           .finally(() => { delete el.dataset.busy; if (el.isConnected) el.disabled = false; });
       } else if (act !== 'saveAll' && SAVE_ACT_RE.test(act)) {
-        saveBarReset();
+        saveBarSectionSaved();
       }
     }
   });

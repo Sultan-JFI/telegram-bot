@@ -2,7 +2,7 @@ import test, { beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import worker, { BotCoordinator } from '../src/index.js';
-import { DurableKV, allEntities, entityKey } from '../src/storage.js';
+import { DurableKV, allEntities, entityKey, prefixEnd } from '../src/storage.js';
 import { MemoryKV, telegramMock } from './helpers.mjs';
 import { getSettings, getUser, getJson, putJson, K } from '../src/kv.js';
 import { verifyAdminPassword, bootstrapRequired, setAdminPassword, sha256hex } from '../src/auth.js';
@@ -89,4 +89,39 @@ test('external requests cannot call internal scheduler endpoints',async()=>{asse
 test('active legacy broadcast jobs import paused, never start sending from a second Worker',async()=>{
   await legacy.put('broadcast:legacy',JSON.stringify({id:'legacy',status:'running',targets:[42],cursor:0,errors:[]}));
   const job=JSON.parse(await env.BOT_KV.get('broadcast:legacy'));assert.equal(job.status,'paused');assert.equal(job.legacyImported,true);assert.equal(JSON.parse(await legacy.get('broadcast:legacy')).status,'running');
+});
+
+/* Cloudflare bills SQLite-backed Durable Objects per row scanned and the Workers Free plan
+ * allows 5M of them per day; once spent, every SELECT throws until 00:00 UTC and the panel
+ * answers `internal_error` to everything (login included). A prefix listing that walked the
+ * whole table did that with a few hundred rows, because the tick lists a dozen prefixes twice
+ * a minute — so every recurring statement must stay an index lookup or a narrow index range. */
+test('prefix listings and expiry cleanup are index ranges, never whole-table walks',async()=>{
+  for(let i=0;i<300;i++)await env.BOT_KV.put('user:'+(1000+i),'{}');
+  for(let i=0;i<5;i++)await env.BOT_KV.put('v2:order:'+i,'{}',i?{expirationTtl:3600}:{expiration:1});
+  const statements=[];const exec=storage.sql.exec;
+  storage.sql.exec=(sql,...args)=>{statements.push({sql,args});return exec(sql,...args);};
+  try{
+    await env.BOT_KV.list({prefix:'v2:order:'});
+    const first=await env.BOT_KV.list({prefix:'user:',limit:100});await env.BOT_KV.list({prefix:'user:',cursor:first.cursor,limit:100});
+    coordinator.kv.cleanup();
+  } finally { storage.sql.exec=exec; }
+  const recurring=statements.filter(s=>/^\s*(SELECT key,metadata|DELETE)/.test(s.sql));
+  assert.equal(recurring.length,4);
+  for(const s of recurring){
+    const plan=storage.db.prepare('EXPLAIN QUERY PLAN '+s.sql).all(...s.args).map(r=>r.detail).join(' | ');
+    assert.match(plan,/USING INDEX/,s.sql);
+    assert.doesNotMatch(plan,/SCAN panel_kv/,s.sql);
+    assert.doesNotMatch(plan,/\(key>\?\)$/,'an open-ended range walks the whole table: '+s.sql);
+  }
+  // The listing stays exact at the prefix boundaries: neighbours that share leading characters
+  // (`v2:order` vs `v2:orders:`) and the row equal to the prefix itself.
+  await env.BOT_KV.put('v2:orders:1','{}');await env.BOT_KV.put('v2:order','{}');await env.BOT_KV.put('v2:order:','{}');
+  const keys=(await env.BOT_KV.list({prefix:'v2:order:'})).keys.map(k=>k.name);
+  assert.deepEqual(keys,['v2:order:','v2:order:1','v2:order:2','v2:order:3','v2:order:4']);
+  // …and cleanup() really removed the expired v2 row (and nothing else).
+  assert.equal(storage.db.prepare("SELECT COUNT(*) AS n FROM panel_kv WHERE key='v2:order:0'").get().n,0);
+  assert.equal((await env.BOT_KV.list({prefix:'user:',limit:1000})).keys.length,300);
+  assert.equal((await env.BOT_KV.list({})).keys.length>=308,true);
+  assert.equal(prefixEnd('v2:order:'),'v2:order;');assert.equal(prefixEnd(''),null);assert.equal(prefixEnd('a\uffff'),'b');
 });

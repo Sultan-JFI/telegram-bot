@@ -214,6 +214,35 @@ test('an unexpected handler failure still returns a JSON error instead of a work
   assert.equal(healthy.status, 200, 'the coordinator must recover for the next request');
 });
 
+/* When the Workers Free plan's daily allowance is spent, Cloudflare throws from the first
+ * storage statement of every request (e.g. "Exceeded allowed rows read in Durable Objects
+ * free tier") until 00:00 UTC. Both error boundaries — the coordinator wrapper and Hono's
+ * onError — must surface that as a dedicated 503 code the panel can explain, not as the
+ * bare `internal_error` that made the login form look broken. */
+test('a spent Cloudflare free-tier allowance is reported as cloudflare_free_tier_limit, not internal_error', async () => {
+  const original = coordinator.environment;
+  const quota = new Error('Exceeded allowed rows read in Durable Objects free tier');
+  coordinator.environment = async () => { throw quota; };
+  try {
+    const res = await raw('POST', '/api/auth/login', JSON.stringify({ password: 'malformed-body-test-password' }), false);
+    assert.equal(res.status, 503);
+    assert.equal((await res.json()).error, 'cloudflare_free_tier_limit');
+  } finally {
+    coordinator.environment = original;
+  }
+  // The same exception raised inside a route handler (Hono's error boundary).
+  const get = env.BOT_KV.get.bind(env.BOT_KV);
+  env.BOT_KV.get = async () => { throw quota; };
+  try {
+    const res = await raw('POST', '/api/auth/login', JSON.stringify({ password: 'malformed-body-test-password' }), false);
+    assert.equal(res.status, 503);
+    assert.equal((await res.json()).error, 'cloudflare_free_tier_limit');
+  } finally {
+    env.BOT_KV.get = get;
+  }
+  assert.equal((await raw('POST', '/api/auth/login', JSON.stringify({ password: 'malformed-body-test-password' }), false)).status, 200, 'the coordinator must recover for the next request');
+});
+
 test('a non-multipart upload body is rejected as invalid_form_body, not as a crash', async () => {
   const configured = await json(await raw('PUT', '/api/settings', JSON.stringify({ uploads: { chatId: '4242' } })));
   assert.equal(configured.status, 200);

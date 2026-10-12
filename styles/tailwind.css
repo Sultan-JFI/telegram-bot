@@ -1,3 +1,145 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Admin panel: small-screen hardening (rebuild with `npm run build`). */
+@layer components {
+  /* Dialogs stay centred on phones instead of hugging the bottom edge, and the
+     height is capped with dvh so the mobile URL bar can never clip the content. */
+  #modal-wrap {
+    padding: 0.75rem;
+  }
+  #modal-box {
+    max-height: min(90dvh, calc(100dvh - 1.5rem));
+    display: flex;
+    flex-direction: column;
+  }
+  #modal-box > * {
+    min-height: 0;
+  }
+  /* Long Persian sentences and pasted identifiers wrap instead of being clipped
+     by the modal edges. */
+  #modal-box p,
+  #modal-box .v-detail dd,
+  #modal-box .v-row-main {
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 480px) {
+    #modal-wrap {
+      align-items: center;
+      justify-content: center;
+      padding: max(0.5rem, env(safe-area-inset-top)) 0.6rem max(0.75rem, env(safe-area-inset-bottom));
+    }
+    #modal-box {
+      border-radius: 18px;
+      max-height: calc(100dvh - 1.5rem - env(safe-area-inset-bottom));
+    }
+    /* The confirm dialog and the section sheet keep a calm, centred rhythm. */
+    #modal-box .p-5,
+    #modal-box .p-6 {
+      padding: 1.1rem;
+    }
+  }
+
+  /* Toasts never sit on top of the save bar: the bar reports its own state, so
+     the floating stack is lifted above it whenever the bar is visible. */
+  #toasts {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+  body.bp-savebar-open #toasts {
+    bottom: calc(9.5rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 768px) {
+    #toasts {
+      bottom: 1.5rem;
+    }
+    body.bp-savebar-open #toasts {
+      bottom: 6.5rem;
+    }
+  }
+
+  /* Save bar: one row, vertically centred, with colour-coded status text that
+     turns green on success (per section and "all changes") and red on failure. */
+  #save-bar-box {
+    min-height: 3.25rem;
+    border-width: 1px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  #save-bar.bp-ok #save-bar-box {
+    border-color: rgb(16 185 129 / 0.55);
+    box-shadow: 0 10px 30px rgb(16 185 129 / 0.16);
+  }
+  #save-bar.bp-err #save-bar-box {
+    border-color: rgb(244 63 94 / 0.55);
+    box-shadow: 0 10px 30px rgb(244 63 94 / 0.16);
+  }
+  #save-bar-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 1.5rem;
+    overflow-wrap: anywhere;
+  }
+  #save-bar-msg > svg,
+  #save-bar-msg > i {
+    flex: none;
+    width: 15px;
+    height: 15px;
+  }
+  #save-bar-btn {
+    min-height: 2.75rem;
+  }
+  #save-bar-msg:empty {
+    min-height: 0;
+  }
+  @media (max-width: 420px) {
+    #save-bar-btn {
+      padding-inline: 0.75rem;
+      font-size: 0.8125rem;
+    }
+    #live-pill {
+      padding-inline: 0.5rem;
+      font-size: 0.7rem;
+    }
+  }
+
+  /* Keep the last card of a route reachable while the save bar floats above the
+     tab bar. */
+  body.bp-savebar-open #view {
+    padding-bottom: 9rem;
+  }
+  @media (min-width: 768px) {
+    body.bp-savebar-open #view {
+      padding-bottom: 7rem;
+    }
+  }
+
+  /* Section headers and bodies gain content width on narrow phones. */
+  @media (max-width: 480px) {
+    .bp-sec > .flex {
+      padding: 1rem;
+    }
+    .bp-sec-inner > div {
+      padding-inline: 1rem;
+      padding-bottom: 1rem;
+    }
+    .sec-actions {
+      justify-content: stretch;
+    }
+    .sec-actions > button {
+      flex: 1 1 auto;
+    }
+  }
+
+  /* Single-line controls keep their label text vertically centred. */
+  .bp-sec-inner input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .bp-sec-inner select,
+  #modal-box input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  #modal-box select {
+    min-height: 2.75rem;
+  }
+  .v-field > span,
+  .v-field > label {
+    line-height: 1.7;
+  }
+}

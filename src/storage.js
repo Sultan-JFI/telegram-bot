@@ -1,5 +1,13 @@
 // A SQLite-backed KV-compatible store. Legacy BOT_KV is imported read-only.
 // All requests that mutate this store are serialized by BotCoordinator.
+//
+// Every statement here must stay an index lookup or a narrow index range. Cloudflare bills
+// SQLite-backed Durable Objects per row *scanned* ("rows read"), and the Workers Free plan
+// allows 5,000,000 of them per day; when that budget is spent, every SELECT in the object
+// throws until 00:00 UTC — the whole panel and the bot then answer `internal_error`. The
+// background tick lists a dozen prefixes twice a minute, so a listing that walks the whole
+// table (as `substr(key,1,n) = prefix` and `key LIKE 'v2:%'` did) burns through that
+// allowance with only a few hundred rows in the table.
 export class DurableKV {
   constructor(storage, legacy) {
     this.storage = storage;
@@ -7,6 +15,8 @@ export class DurableKV {
     this.legacy = legacy;
     this.sql.exec('CREATE TABLE IF NOT EXISTS panel_kv (key TEXT PRIMARY KEY, value TEXT, metadata TEXT, expires INTEGER, deleted INTEGER NOT NULL DEFAULT 0)');
     this.sql.exec('CREATE TABLE IF NOT EXISTS panel_imports (prefix TEXT PRIMARY KEY)');
+    // Lets cleanup() visit only the rows that can actually expire instead of scanning the table.
+    this.sql.exec('CREATE INDEX IF NOT EXISTS panel_kv_expires ON panel_kv (expires) WHERE expires IS NOT NULL');
   }
   async get(key) {
     let row = this.sql.exec('SELECT * FROM panel_kv WHERE key = ?', key).toArray()[0];
@@ -64,14 +74,36 @@ export class DurableKV {
     let after = '';
     if (cursor) { try { after = JSON.parse(atob(cursor)).after || ''; } catch {} }
     const size = Math.min(1000, Math.max(1, Number(limit) || 1000));
-    const rows = this.sql.exec('SELECT key,metadata FROM panel_kv WHERE substr(key,1,?) = ? AND key > ? AND deleted = 0 AND (expires IS NULL OR expires > ?) ORDER BY key LIMIT ?', prefix.length, prefix, after, Date.now(), size + 1).toArray();
+    // A prefix is the key range [prefix, prefixEnd(prefix)), which the primary key index
+    // answers directly; the cursor only moves the lower bound forward inside that range.
+    const end = prefixEnd(prefix);
+    const rows = this.sql.exec(
+      `SELECT key,metadata FROM panel_kv WHERE ${after ? 'key > ?' : 'key >= ?'}${end ? ' AND key < ?' : ''} AND deleted = 0 AND (expires IS NULL OR expires > ?) ORDER BY key LIMIT ?`,
+      after || prefix, ...(end ? [end] : []), Date.now(), size + 1,
+    ).toArray();
     const complete = rows.length <= size;
     const page = rows.slice(0, size);
     return { keys: page.map(r => ({ name: r.key, metadata: r.metadata ? JSON.parse(r.metadata) : undefined })), list_complete: complete, cursor: complete ? undefined : btoa(JSON.stringify({ after: page.at(-1).key })) };
   }
   cleanup() {
-    this.sql.exec('DELETE FROM panel_kv WHERE key LIKE \'v2:%\' AND expires IS NOT NULL AND expires < ?', Date.now());
+    // Only v2 rows are purged: an expired row under a legacy prefix doubles as the tombstone
+    // that stops the old KV value from being imported again. The prefix test is deliberately
+    // written as substr() so the planner cannot pick the primary key (most rows are v2 rows)
+    // and walks the partial `expires` index instead — i.e. only the rows that have expired.
+    this.sql.exec('DELETE FROM panel_kv WHERE expires IS NOT NULL AND expires < ? AND substr(key,1,3) = ?', Date.now(), 'v2:');
   }
+}
+
+// Smallest string greater than every key that starts with `prefix` (its last code unit
+// incremented), or null for the empty prefix. Keys are compared bytewise by SQLite and all
+// prefixes used by the panel are ASCII, so this bound is exact.
+export function prefixEnd(prefix) {
+  let p = String(prefix);
+  while (p.length && p.charCodeAt(p.length - 1) >= 0xffff) p = p.slice(0, -1);
+  if (!p.length) return null;
+  let next = p.charCodeAt(p.length - 1) + 1;
+  if (next >= 0xd800 && next <= 0xdfff) next = 0xe000; // never produce a lone surrogate
+  return p.slice(0, -1) + String.fromCharCode(next);
 }
 
 export const entityKey = (type, id) => `v2:${type}:${id}`;

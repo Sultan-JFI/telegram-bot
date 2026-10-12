@@ -41,3 +41,18 @@ html[data-motion=off] *,html[data-motion=off] *:before,html[data-motion=off] *:a
 
 .sv-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:24px;border:1px solid rgba(56,189,248,.18);border-radius:20px;background:linear-gradient(120deg,rgba(56,189,248,.06),rgba(139,92,246,.065))}.sv-header h3{font-size:21px;font-weight:800;margin:8px 0}.sv-header p{font-size:12px;color:#94a3b8;line-height:1.9}.sv-header>.v-badge{flex-shrink:0}.sv-tabs{margin-top:16px}.sv-tabs .v-tab{padding:9px 12px}.sv-codeblock{font-family:ui-monospace,monospace;direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.8;max-height:60vh;overflow:auto;background:rgba(148,163,184,.06);border-radius:12px;padding:14px;margin:14px 0}.sv-steps{list-style:decimal;padding-inline-start:24px;font-size:13px;line-height:2.2}.sv-steps li{margin-bottom:8px}.sv-workspace .v-row-main{min-width:100px}.sv-workspace .v-field input[type=file]{max-width:100%;font-size:12px}@media(max-width:639px){.sv-header{padding:18px}.sv-header h3{font-size:18px}.sv-tabs .v-tab{padding:9px 11px}.sv-workspace .v-actions{justify-content:flex-start}.sv-workspace .v-row>.v-actions{flex:1 0 100%;margin-inline-start:0}}
 .sv-botbar{max-width:80rem;width:100%;margin:0 auto;padding:10px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(148,163,184,.13);font-size:11px;color:#94a3b8}.sv-botbar b{color:#38bdf8}.sv-botbar>div{display:flex;gap:7px}.sv-botbar button{font-size:11px;padding:6px 10px}@media(max-width:639px){.sv-botbar{padding:10px 16px;flex-wrap:wrap}}
+.v-row-main svg.lucide,.v-meta svg.lucide,.v-field>span svg.lucide,h4 svg.lucide,.v-upload-status svg.lucide,.v-empty svg.lucide,.v-badge svg.lucide{width:14px;height:14px;vertical-align:-2px}
+.v-actions .btn svg.lucide,.sec-actions .btn svg.lucide,.v-check svg.lucide,#modal-box p svg.lucide{width:15px;height:15px}
+.sv-health-ok{display:inline-flex;align-items:center;gap:4px;color:#10b981;font-weight:700}
+.sv-health-warn{display:inline-flex;align-items:center;gap:4px;color:#f59e0b;font-weight:700}
+.sv-health-ok svg,.sv-health-warn svg{width:13px;height:13px}
+.v-rank{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 6px;border-radius:999px;font-size:12px;font-weight:800}
+.v-rank.r1{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#451a03}
+.v-rank.r2{background:linear-gradient(135deg,#e2e8f0,#94a3b8);color:#0f172a}
+.v-rank.r3{background:linear-gradient(135deg,#f0a070,#b45309);color:#431407}
+@media(max-width:479px){.v-grid{grid-template-columns:1fr}.v-hero h2{font-size:18px}.v-row-main{flex:1 1 100%}.v-note{font-size:11px}.v-empty{padding:32px 12px}}
+.bp-sec-inner,.v-row-main,.v-field{min-width:0}
+.v-code,.v-meta{overflow-wrap:anywhere}
+#modal-box{max-width:min(32rem,calc(100vw - 2rem))}
+.bp-utable{border-collapse:collapse}
+@media(max-width:639px){.bp-utable td,.bp-utable th{padding-inline:6px}}

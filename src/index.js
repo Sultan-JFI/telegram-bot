@@ -45,10 +45,23 @@ api.use('*', async (c, next) => { c.header('cache-control', 'no-store'); c.heade
 for (const [path, routes] of Object.entries({ auth: authRoutes, dashboard: dashboardRoutes, users: usersRoutes, broadcast: broadcastRoutes, engagement: engagementRoutes, support: supportRoutes, menu: menuRoutes, news: newsRoutes, rates: ratesRoutes, settings: settingsRoutes, media: mediaRoutes, studio: studioRoutes, creator: creatorRoutes, services: serviceRoutes, portal, bots: managedRoutes })) api.route('/' + path, routes);
 api.get('/health', c => c.json({ ok: true, data: { ts: Date.now(), version: c.env.APP_VERSION || '2.0.0', colo: c.req.raw.cf?.colo || null, durable: !!c.env.__coordinated } }));
 api.notFound(c => c.json({ ok: false, error: 'not_found' }, 404));
+// Cloudflare's own "you are over the Free plan's daily allowance" exceptions (rows read /
+// written, requests, duration). They are thrown by the very first storage statement of a
+// request, so without this mapping the whole panel — including the login form — shows a
+// bare `internal_error` until the allowance resets at 00:00 UTC.
+const FREE_TIER_LIMIT = /free tier|exceeded allowed|daily (?:request |duration )?limit/i;
+export const errorCode = (error) => {
+  const message = String(error?.message || '');
+  if (FREE_TIER_LIMIT.test(message)) return 'cloudflare_free_tier_limit';
+  // Only the API's own snake_case codes are safe to echo back; anything else is a
+  // JavaScript exception message and must not leak to the client.
+  return /^[a-z0-9_]+$/.test(message) ? message : 'internal_error';
+};
 api.onError((err, c) => {
   if (err.status) return c.json({ ok: false, error: err.message }, err.status);
   console.error('[api] request failed', c.req.method, c.req.path, err.name, String(err.message).slice(0, 200));
-  return c.json({ ok: false, error: 'internal_error' }, 500);
+  const code = errorCode(err);
+  return c.json({ ok: false, error: code }, code === 'cloudflare_free_tier_limit' ? 503 : 500);
 });
 
 export async function runScheduled(env) {
@@ -79,10 +92,8 @@ async function detachedRequest(request) {
 }
 const serverError = (label, error, status = 500) => {
   console.error('[worker] ' + label + ' failed', error?.name, String(error?.message).slice(0, 200));
-  const httpStatus = Number.isInteger(error?.status) ? Math.min(599, Math.max(400, error.status)) : status;
-  // Only the API's own snake_case codes are safe to echo back; anything else is a
-  // JavaScript exception message and must not leak to the client.
-  const code = /^[a-z0-9_]+$/.test(String(error?.message || '')) ? error.message : 'internal_error';
+  const code = errorCode(error);
+  const httpStatus = Number.isInteger(error?.status) ? Math.min(599, Math.max(400, error.status)) : code === 'cloudflare_free_tier_limit' ? 503 : status;
   return Response.json({ ok: false, error: code }, { status: httpStatus });
 };
 // Wraps the public (non-Hono) entry points: payment callbacks, subscription links,

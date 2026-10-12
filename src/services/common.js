@@ -227,13 +227,13 @@ export class RemoteError extends Error {
     this.remoteStatus = remoteStatus;
   }
 }
-export async function fetchLimited(url, options = {}, max = 2 * 1024 * 1024) {
+export async function fetchLimited(url, options = {}, max = 2 * 1024 * 1024, timeoutMs = 10000) {
   let res;
   try {
     res = await fetch(url, {
       ...options,
       redirect: options.redirect || "error",
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch {
     throw new RemoteError("provider_network_error", {

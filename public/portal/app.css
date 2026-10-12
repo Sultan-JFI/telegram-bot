@@ -734,3 +734,33 @@ header .subtitle {
 .support-bubble time { display: block; margin-top: 6px; font-size: 10px; opacity: .55; }
 .support-form textarea { width: 100%; }
 .nav-badge { display: inline-block; min-width: 16px; padding: 0 4px; margin-inline-start: 4px; border-radius: 999px; background: var(--danger, #f43f5e); color: #fff; font-size: 10px; line-height: 16px; }
+
+/* Inline brand icons (replacing emojis across the Mini App) */
+.ic { display: inline-flex; vertical-align: -3px; margin-inline-end: 6px; }
+.ic svg { width: 16px; height: 16px; }
+.btn .ic { margin-inline-end: 2px; }
+.icon-button .ic { margin-inline-end: 0; }
+.bottom-nav button span:first-child { display: inline-flex; line-height: 1; }
+.bottom-nav button span:first-child .ic { margin-inline-end: 0; }
+.bottom-nav button span:first-child svg { width: 21px; height: 21px; }
+.empty .symbol .ic { margin-inline-end: 0; }
+.empty .symbol svg { width: 34px; height: 34px; }
+.prize-ring .ic { margin-inline-end: 0; color: var(--accent); }
+.prize-ring svg { width: 44px; height: 44px; }
+.hint .ic { margin-inline-end: 4px; color: var(--accent); }
+
+/* Responsive hardening for small phones */
+.page, .card, .hero { min-width: 0; }
+.card, .hero { overflow-wrap: anywhere; }
+.codebox { overflow-x: auto; max-width: 100%; }
+.grid { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions .btn { flex: 1 1 auto; min-width: min(140px, 100%); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.toolbar select { flex: 1 1 140px; min-width: 0; }
+img, svg, video { max-width: 100%; }
+@media (max-width: 380px) {
+  .shell { padding-inline: 12px; }
+  .bottom-nav button { font-size: 9px; padding: 8px 2px; }
+  .prize-ring { width: 112px; height: 112px; border-width: 9px; }
+}

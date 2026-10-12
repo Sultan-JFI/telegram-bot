@@ -63,6 +63,12 @@ test("save-all shows a single message and suppresses per-section success toasts"
     updateSaveBar();
   `);
   assert.equal(doc.getElementById("save-bar").classList.contains("hidden"), false);
+  // The status text and the "save all changes" button share one box: the message
+  // is reported next to the button, not as a floating toast over it.
+  const box = doc.getElementById("save-bar-box");
+  assert.equal(box.contains(doc.getElementById("save-bar-msg")), true);
+  assert.equal(box.contains(doc.getElementById("save-bar-btn")), true);
+  assert.equal(doc.getElementById("save-bar-msg").getAttribute("aria-live"), "polite");
   tap(doc.getElementById("save-bar-btn"), { pointer: false });
   await tick(40);
   assert.deepEqual(Array.from(win.__ran || []), ["saveGeneral", "saveChannel", "saveTuning"]);
@@ -70,9 +76,9 @@ test("save-all shows a single message and suppresses per-section success toasts"
   assert.equal(doc.getElementById("save-bar-msg").textContent, "تمامی تغییرات ذخیره شدند");
 });
 
-test("a single-section save emits exactly one toast and resets the bar silently", async () => {
+test("a single-section save reports green “saved” inside the bar instead of a toast", async () => {
   panel = bootPanel();
-  const { doc, inject, tap } = panel;
+  const { doc, win, inject, tap } = panel;
   injectSettingsFetch(panel);
   inject(`render();`);
   await tick();
@@ -85,9 +91,74 @@ test("a single-section save emits exactly one toast and resets the bar silently"
   const btn = doc.querySelector('[data-act="saveGeneral"]');
   tap(btn);
   await tick(40);
-  assert.equal(doc.querySelectorAll("#toasts > div").length, 1, "exactly one toast for a section save");
-  assert.equal(doc.getElementById("save-bar-msg").textContent, "", "the bar resets without a second message");
+  const msg = doc.getElementById("save-bar-msg");
+  assert.equal(msg.textContent, "ذخیره شد", "the bar itself reports the saved state");
+  assert.match(msg.className, /text-emerald-600/, "the saved message is green");
+  assert.equal(doc.getElementById("save-bar").classList.contains("bp-ok"), true, "the bar turns green");
+  assert.equal(doc.querySelectorAll("#toasts > div").length, 0, "no duplicate floating toast for a save");
   assert.equal(btn.disabled, false, "the button releases after the async action");
+  assert.equal(win.document.body.classList.contains("bp-savebar-open"), true, "the bar reserves layout space");
+  // A later edit flips the bar back to the unsaved hint.
+  inject(`
+    const editable = document.createElement('input');
+    document.getElementById('view').appendChild(editable);
+    editable.dispatchEvent(new Event('input', { bubbles: true }));
+  `);
+  await tick(30);
+  assert.equal(msg.textContent, "تغییرات ذخیره‌نشده دارید", "editing marks the bar dirty again");
+});
+
+test("a failed save paints the bar message red and still toasts the reason", async () => {
+  panel = bootPanel();
+  const { doc, inject, tap } = panel;
+  injectSettingsFetch(panel);
+  inject(`render();`);
+  await tick();
+  inject(`
+    document.getElementById('view').innerHTML = '<button data-act="saveGeneral">a</button>';
+    document.getElementById('toasts').innerHTML = '';
+    ACTIONS.saveGeneral = async () => { throw new Error('token_invalid'); };
+    updateSaveBar();
+  `);
+  tap(doc.querySelector('[data-act="saveGeneral"]'));
+  await tick(40);
+  const msg = doc.getElementById("save-bar-msg");
+  assert.equal(msg.textContent, "token_invalid", "the failure reason is shown in the bar");
+  assert.match(msg.className, /text-rose-600/, "the failure message is red");
+  assert.equal(doc.getElementById("save-bar").classList.contains("bp-err"), true, "the bar turns red");
+  assert.equal(doc.querySelectorAll("#toasts > div").length, 1, "the failure is also toasted");
+});
+
+test("save-all reports green “all changes saved” and red when a section fails", async () => {
+  panel = bootPanel();
+  const { doc, win, inject, tap } = panel;
+  injectSettingsFetch(panel);
+  inject(`render();`);
+  await tick();
+  inject(`
+    document.getElementById('view').innerHTML =
+      '<button data-act="saveGeneral">a</button><button data-act="saveTuning">c</button>';
+    ACTIONS.saveGeneral = async () => {};
+    ACTIONS.saveTuning = async () => {};
+    updateSaveBar();
+  `);
+  tap(doc.getElementById("save-bar-btn"), { pointer: false });
+  await tick(40);
+  const msg = doc.getElementById("save-bar-msg");
+  assert.equal(msg.textContent, "تمامی تغییرات ذخیره شدند");
+  assert.match(msg.className, /text-emerald-600/, "the all-saved message is green");
+  assert.equal(doc.getElementById("save-bar").classList.contains("bp-ok"), true);
+
+  inject(`
+    ACTIONS.saveTuning = async () => { throw new Error('invalid_body'); };
+    window.confirm = () => true;
+  `);
+  tap(doc.getElementById("save-bar-btn"), { pointer: false });
+  await tick(40);
+  assert.equal(msg.textContent, "درخواست به‌درستی به سرور نرسید؛ صفحه را تازه کنید و دوباره ذخیره را بزنید.");
+  assert.match(msg.className, /text-rose-600/, "a failed save-all is red");
+  assert.equal(doc.getElementById("save-bar").classList.contains("bp-err"), true);
+  assert.equal(win.document.getElementById("save-bar").classList.contains("bp-ok"), false);
 });
 
 test("a double tap on an async action runs it once; sync actions release immediately", async () => {

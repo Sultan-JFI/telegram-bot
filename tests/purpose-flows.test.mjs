@@ -181,6 +181,24 @@ test('admin rates manager: toggle, category, daily time and destinations from Te
   assert.equal(s.rates.autoSend.destinations[0].chatId, '@rateschannel');
 });
 
+test('admin rates screen can report which feeds answered', async () => {
+  await h.settings({ adminId: '9000', botPurpose: 'custom' });
+  await h.msg(9000, '/admin');
+  tg.clear();
+  await h.cb(9000, 'adm:rates');
+  const screen = SENT_TO(9000).pop();
+  assert(KB(screen).includes('adm:rsrc'), 'the rates screen must offer a source check');
+
+  // Every market host is unreachable here, so the report must name the failures
+  // instead of only saying the market could not be reached.
+  await h.cb(9000, 'adm:rsrc');
+  const report = SENT_TO(9000).filter(c => c.payload.text?.includes('وضعیت منابع نرخ')).pop();
+  assert(report, 'the source report must be delivered');
+  assert(report.payload.text.includes('منبع پاسخ داد'), 'it counts the answering feeds');
+  assert(/❌/.test(report.payload.text), 'a blocked feed is marked as failed');
+  assert(report.payload.text.includes('آخرین نرخ ذخیره‌شده'), 'and the snapshot warning stays visible');
+});
+
 test('rates daily tick publishes the table once per day at the scheduled time', async () => {
   await h.settings({ botPurpose: 'rates', rates: { autoSend: { enabled: true, category: 'all', time: '09:00', destinations: [{ chatId: '-100111', title: 'کانال قیمت' }] } } });
   // Not yet 09:00 Tehran time? Force the due branch by backdating state.

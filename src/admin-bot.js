@@ -11,7 +11,7 @@ import { entityKey, allEntities } from './storage.js';
 import { str, int, isChatId, text as tr, assert, PURPOSES, MODULES, enabled, isValidTime, label, byteLength } from './config.js';
 import { sendToUser, resolveToken, tgApi } from './bot-api.js';
 import { NEWS_CATEGORIES, sendNewsDigest } from './news.js';
-import { RATES_CATEGORIES, RATES_SEND_CATS, sendRatesNow } from './rates.js';
+import { RATES_CATEGORIES, RATES_SEND_CATS, getLiveRates, ratesSourcesText, sendRatesNow } from './rates.js';
 import { publishRelay } from './automation.js';
 import { patchV2Settings } from './config.js';
 import { createBroadcast } from './broadcast.js';
@@ -250,6 +250,7 @@ async function ratesScreen(env, token, chatId, settings, lang) {
       { text: `${cfg.enabled ? '⏸' : '▶️'} ${tr('ارسال خودکار', 'Auto-send', lang)}: ${onOff(cfg.enabled, lang)}`, callback_data: 'adm:rauto' },
       { text: `📡 ${tr('مقصدها', 'Destinations', lang)} (${dest.length})`, callback_data: 'adm:rddest' },
     ],
+    [{ text: '🔌 ' + tr('بررسی منابع نرخ', 'Check rate sources', lang), callback_data: 'adm:rsrc' }],
     backRow(lang),
   ];
   return sendToUser(token, chatId, lines.join('\n'), { reply_markup: { inline_keyboard: rows } });
@@ -835,7 +836,7 @@ export async function adminCallback(env, cb, token, user, settings, lang, { answ
     if (data === 'adm:crm.toggle') {
       const s = await getSettings(env); s.loyalty.enabled = !s.loyalty.enabled; await saveSettings(env, s); await answer(t2('saved', lang)); await crmScreen(env, token, chatId, lang); return true;
     }
-    if (data === 'adm:rates' || data.startsWith('adm:rauto') || data.startsWith('adm:rsend:') || data.startsWith('adm:rcat:') || data.startsWith('adm:rt:')) {
+    if (data === 'adm:rates' || data.startsWith('adm:rauto') || data.startsWith('adm:rsend:') || data.startsWith('adm:rcat:') || data.startsWith('adm:rt:') || data.startsWith('adm:rsrc')) {
       return await handleRates(env, token, chatId, user, lang, data, answer);
     }
     if (data === 'adm:rtmenu') { await ratesTimeScreen(env, token, chatId, await getSettings(env), lang); return true; }
@@ -1118,6 +1119,16 @@ async function handleNews(env, token, chatId, user, lang, data, answer) {
 async function handleRates(env, token, chatId, user, lang, data, answer) {
   const settings = await getSettings(env);
   const cfg = settings.rates?.autoSend || { enabled: false, category: 'all', time: '09:00', destinations: [] };
+  if (data.startsWith('adm:rsrc')) {
+    // Force a fresh pull and report every feed: this is how an admin sees *why*
+    // the table was showing the last saved snapshot.
+    await answer();
+    const live = await getLiveRates(env, { force: true });
+    await sendToUser(token, chatId, ratesSourcesText(live, lang).slice(0, 4096), {
+      reply_markup: { inline_keyboard: [[{ text: '🔙 ' + tr('بازگشت', 'Back', lang), callback_data: 'adm:rates' }]] },
+    });
+    return true;
+  }
   if (data.startsWith('adm:rsend:')) {
     const category = data.slice('adm:rsend:'.length);
     const out = await sendRatesNow(env, { category });

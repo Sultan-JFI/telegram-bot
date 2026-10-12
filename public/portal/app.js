@@ -56,6 +56,37 @@ const select = (id, label, options, value = "") =>
 const notice = (text, kind = "") => `<div class="notice ${kind}">${text}</div>`;
 const empty = (text, symbol = "◌") =>
   `<div class="empty"><div class="symbol">${symbol}</div><p>${text}</p></div>`;
+// Inline brand icons (the Mini App ships zero icon fonts, so the glyphs travel
+// with the bundle instead of emojis).
+const ICONS = {
+  store:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h15l-1.5 9h-12z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+  services:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  wallet:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M16 13.5h.01"/></svg>',
+  gift:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8s-4 0-5-1.5S8 4 9.5 4 12 8 12 8zm0 0s4 0 5-1.5S16 4 14.5 4 12 8 12 8z"/></svg>',
+  help:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.1.8-1.1 1.8"/><path d="M12 17h.01"/></svg>',
+  trial:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9V3"/><path d="M7.5 15h9"/></svg>',
+  card:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  mail:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+  chat:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a7.5 7.5 0 0 1-7.5 7.5H4l2.3-2.9A7.5 7.5 0 1 1 21 11.5z"/></svg>',
+  agent:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  spark:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l1.9 5.6 5.6 1.9-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9z"/><path d="M19 15l.9 2.6 2.6.9-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9z"/></svg>',
+  refresh:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/></svg>',
+};
+const icon = (name) =>
+  `<span class="ic" aria-hidden="true">${ICONS[name] || ""}</span>`;
 const val = (id) => el(id)?.value?.trim() || "";
 const status = (s) =>
   ({
@@ -186,6 +217,18 @@ function errorText(code) {
     payment_not_finished: T(
       "پرداخت هنوز نهایی نشده است.",
       "Payment is not finished yet.",
+    ),
+    signed_webhook_required: T(
+      "تأیید ترونادو پس از دریافت وب‌هوک امضاشده خودکار انجام می‌شود. اگر پرداخت کرده‌اید کمی صبر کنید.",
+      "Tronado is confirmed automatically by its signed webhook. Please wait after paying.",
+    ),
+    payment_amount_mismatch: T(
+      "مبلغ تأییدشده با فاکتور مطابقت ندارد؛ با پشتیبانی تماس بگیرید.",
+      "The confirmed amount does not match the invoice. Contact support.",
+    ),
+    payment_requires_review: T(
+      "این پرداخت نیازمند بررسی پشتیبانی است؛ دوباره پرداخت نکنید.",
+      "This payment requires support review. Do not pay again.",
     ),
     payment_not_verified: T(
       "پرداخت هنوز از درگاه تأیید نشده است.",
@@ -359,14 +402,14 @@ function shell(content) {
     document.documentElement.style.setProperty("--accent", name.accent);
   const title = P.lang === "en" ? name?.nameEn : name?.name;
   el("portal-app").innerHTML =
-    `<div class="shell"><header>${brandHTML()}<div class="header-info"><h1>${esc(title || T("پنل خدمات مشتری", "Customer portal"))}</h1><div class="subtitle">CUSTOMER PORTAL · CLOUDFLARE</div></div>${button(P.lang === "fa" ? "EN" : "فا", "language", "", "icon-button")}${P.token ? button("↻", "refresh", "", "icon-button") : ""}</header><main id="portal-view" class="page">${content}</main></div>${
+    `<div class="shell"><header>${brandHTML()}<div class="header-info"><h1>${esc(title || T("پنل خدمات مشتری", "Customer portal"))}</h1><div class="subtitle">CUSTOMER PORTAL · CLOUDFLARE</div></div>${button(P.lang === "fa" ? "EN" : "فا", "language", "", "icon-button")}${P.token ? button(icon("refresh"), "refresh", "", "icon-button") : ""}</header><main id="portal-view" class="page">${content}</main></div>${
       P.data?.gate.ok
         ? `<nav class="bottom-nav" aria-label="${T("ناوبری", "Navigation")}"><div>${[
-            ["store", "◈", T("خرید", "Shop")],
-            ["services", "▣", T("سرویس‌ها", "Services")],
-            ["wallet", "▤", T("کیف پول", "Wallet")],
-            ["rewards", "✦", T("هدیه‌ها", "Rewards")],
-            ["help", "?", T("راهنما", "Help")],
+            ["store", icon("store"), T("خرید", "Shop")],
+            ["services", icon("services"), T("سرویس‌ها", "Services")],
+            ["wallet", icon("wallet"), T("کیف پول", "Wallet")],
+            ["rewards", icon("gift"), T("هدیه‌ها", "Rewards")],
+            ["help", icon("help"), T("راهنما", "Help")],
           ]
             .map(
               ([id, icon, label]) =>
@@ -457,7 +500,7 @@ async function storePage() {
       (!P.filter.location || p.location === P.filter.location),
   );
   const s = P.data.settings;
-  return `<section class="hero"><div class="eyebrow">FIND YOUR NEXT CONNECTION</div><h2>${T("یک اتصال، به انتخاب شما", "Your next connection")}</h2><p>${T("پلن مورد نظر را انتخاب کنید؛ مبلغ نهایی قبل از خرید تأیید می‌شود.", "Choose a plan. Review the final price before confirming your purchase.")}</p><div class="actions" style="margin-top:18px">${s.testPlanId ? button(T("🧪 دریافت تست", "🧪 Try a service"), "trial") : ""}${button(T("💳 شارژ کیف پول", "💳 Top up wallet"), "nav", 'data-tab="wallet"')}</div></section>${s.maintenance || !s.enabled ? '<div style="margin-top:16px">' + notice(T("خرید جدید موقتاً متوقف است؛ سرویس‌ها و سوابق شما حفظ شده‌اند.", "New sales are paused. Your services and records are preserved."), "warn") + "</div>" : ""}<div class="toolbar"><select id="filter-category" aria-label="${T("دسته‌بندی", "Category")}"><option value="">${T("همه دسته‌ها", "All categories")}</option>${categories.map((c) => `<option ${P.filter.category === c ? "selected" : ""}>${esc(c)}</option>`).join("")}</select><select id="filter-location" aria-label="${T("موقعیت", "Location")}"><option value="">${T("همه موقعیت‌ها", "All locations")}</option>${locations.map((l) => `<option ${P.filter.location === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div><div class="grid">${plans.map((p) => `<article class="card plan"><div class="between"><span class="chip">${esc(p.location)}</span>${p.custom ? '<span class="chip">' + T("دلخواه", "Custom") + "</span>" : ""}</div><h3>${esc((P.lang === "en" && p.titleEn) || p.title)}</h3><p class="muted small">${esc(p.description || "")}</p><div class="specs"><span class="chip">${p.volumeGB ? num(p.volumeGB) + " GB" : T("حجم نامحدود", "Unlimited data")}</span><span class="chip">${p.days ? num(p.days) + " " + T("روز", "days") : T("زمان نامحدود", "No expiry")}</span>${p.firstUse ? '<span class="chip">' + T("از اولین اتصال", "From first use") + "</span>" : ""}</div><div class="price">${num(p.price, 0)} <small>${T("تومان", "toman")}</small></div><div class="actions">${button(T("انتخاب و خرید", "Choose plan"), "buy", `data-id="${p.id}"`, "primary")}</div></article>`).join("") || empty(T("فعلاً پلنی برای شما موجود نیست.", "No available plans for your account."))}</div>`;
+  return `<section class="hero"><div class="eyebrow">FIND YOUR NEXT CONNECTION</div><h2>${T("یک اتصال، به انتخاب شما", "Your next connection")}</h2><p>${T("پلن مورد نظر را انتخاب کنید؛ مبلغ نهایی قبل از خرید تأیید می‌شود.", "Choose a plan. Review the final price before confirming your purchase.")}</p><div class="actions" style="margin-top:18px">${s.testPlanId ? button(icon("trial") + T("دریافت تست", "Try a service"), "trial") : ""}${button(icon("card") + T("شارژ کیف پول", "Top up wallet"), "nav", 'data-tab="wallet"')}</div></section>${s.maintenance || !s.enabled ? '<div style="margin-top:16px">' + notice(T("خرید جدید موقتاً متوقف است؛ سرویس‌ها و سوابق شما حفظ شده‌اند.", "New sales are paused. Your services and records are preserved."), "warn") + "</div>" : ""}<div class="toolbar"><select id="filter-category" aria-label="${T("دسته‌بندی", "Category")}"><option value="">${T("همه دسته‌ها", "All categories")}</option>${categories.map((c) => `<option ${P.filter.category === c ? "selected" : ""}>${esc(c)}</option>`).join("")}</select><select id="filter-location" aria-label="${T("موقعیت", "Location")}"><option value="">${T("همه موقعیت‌ها", "All locations")}</option>${locations.map((l) => `<option ${P.filter.location === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div><div class="grid">${plans.map((p) => `<article class="card plan"><div class="between"><span class="chip">${esc(p.location)}</span>${p.custom ? '<span class="chip">' + T("دلخواه", "Custom") + "</span>" : ""}</div><h3>${esc((P.lang === "en" && p.titleEn) || p.title)}</h3><p class="muted small">${esc(p.description || "")}</p><div class="specs"><span class="chip">${p.volumeGB ? num(p.volumeGB) + " GB" : T("حجم نامحدود", "Unlimited data")}</span><span class="chip">${p.days ? num(p.days) + " " + T("روز", "days") : T("زمان نامحدود", "No expiry")}</span>${p.firstUse ? '<span class="chip">' + T("از اولین اتصال", "From first use") + "</span>" : ""}</div><div class="price">${num(p.price, 0)} <small>${T("تومان", "toman")}</small></div><div class="actions">${button(T("انتخاب و خرید", "Choose plan"), "buy", `data-id="${p.id}"`, "primary")}</div></article>`).join("") || empty(T("فعلاً پلنی برای شما موجود نیست.", "No available plans for your account."))}</div>`;
 }
 function planForm(p, kind = "buy", serviceId = "") {
   return `<form data-form="quote"><input type="hidden" id="buy-plan" value="${p.id}"><input type="hidden" id="buy-kind" value="${kind}"><input type="hidden" id="buy-service" value="${serviceId}"><p class="price">${money(p.price)}</p><p class="muted small">${esc(p.description || "")}</p>${p.custom ? `<div class="grid">${field("buy-gb", T("حجم دلخواه GB", "Custom GB"), p.volumeGB, `type="number" min="${p.minGB}" max="${p.maxGB}" step="0.1" required`)}${field("buy-days", T("روز دلخواه", "Custom days"), p.days, `type="number" min="${p.minDays}" max="${p.maxDays}" required`)}</div>` : ""}${kind === "buy" ? field("buy-quantity", T("تعداد", "Quantity"), 1, 'type="number" min="1" max="10" required') : ""}${kind === "buy" && P.data.settings.customNames ? field("buy-name", T("نام لاتین دلخواه؛ اختیاری، فقط خرید تکی", "Custom ASCII name; optional, single purchase only"), "", 'pattern="[A-Za-z][A-Za-z0-9_-]{2,59}" maxlength="60" dir="ltr"') : ""}${field("buy-coupon", T("کد تخفیف؛ اختیاری", "Discount code; optional"), "", 'dir="ltr" maxlength="40"')}<p class="hint">${T("این مرحله پرداخت نیست؛ ابتدا پیش‌فاکتور دقیق را می‌بینید.", "This step does not charge you. You will review a server-calculated quote.")}</p><div class="actions"><button type="submit" class="btn primary">${T("مشاهده پیش‌فاکتور", "Review quote")}</button></div></form>`;
@@ -469,7 +512,7 @@ async function servicesPage() {
   const pending = o.rows.filter((o) =>
     ["queued", "sending", "review"].includes(o.status),
   );
-  return `${pending.length ? `<div class="section-head"><h2>${T("سفارش‌های در حال انجام", "Pending orders")}</h2></div>${pending.map((o) => `<section class="card"><div class="between"><b>${esc(o.planTitle)}</b>${chip(o.status)}</div><p class="hint">${money(o.amount)} · ${date(o.createdAt)}</p>${o.error ? notice(esc(errorText(o.error)), "warn") : ""}${o.status === "queued" ? `<div class="actions">${button(T("لغو و آزادسازی رزرو", "Cancel & release hold"), "cancelOperation", `data-id="${o.id}"`)}</div>` : ""}</section>`).join("")}` : ""}<div class="actions" style="margin-top:20px">${button(T("لینک تجمیعی سرویس‌ها", "Combined subscription"), "combined")}</div><div class="section-head"><h2>${T("سرویس‌های من", "My services")}</h2><span class="chip">${num(s.rows.length)}</span></div>${s.rows.map((s) => `<article class="card"><div class="service-head"><div><h3>${esc(s.title)}</h3><p class="service-name">${esc(s.username)}</p></div>${chip(s.status)}</div>${s.usageAvailable ? `<div class="meter"><span style="width:${s.dataLimit ? Math.min(100, (s.usedBytes / s.dataLimit) * 100) : 0}%"></span></div><div class="between small muted"><span>${T("مصرف", "Used")}: ${num(s.usedBytes / GB)} GB</span><span>${s.dataLimit ? num(s.dataLimit / GB) + " GB" : "∞"}</span></div>` : '<p class="hint">' + T("مصرف آنلاین برای این نوع سرویس در دسترس نیست.", "Live traffic metering is unavailable for this service type.") + "</p>"}<p class="hint">${esc(s.location || s.panelTitle || "")} · ${T("انقضا", "Expiry")}: ${s.expiresAt ? date(s.expiresAt * 1000) : s.status === "on_hold" ? T("پس از اولین اتصال", "After first connection") : T("تاریخ ثابت ندارد", "No fixed expiry")}</p>${s.lastSyncError ? notice(T("اطلاعات ممکن است قدیمی باشد؛ بروزرسانی پنل ناموفق بوده است.", "Provider synchronization failed; displayed information may be stale."), "warn") : ""}<div class="actions" style="margin-top:18px">${button(T("کانفیگ و QR", "Configs & QR"), "content", `data-id="${s.id}"`, "primary")}${button(T("مدیریت سرویس", "Manage service"), "manage", `data-id="${s.id}"`)}</div></article>`).join("") || empty(T("هنوز سرویسی ندارید؛ از فروشگاه پلن انتخاب کنید.", "No services yet. Choose a plan in the store."), "▣")}`;
+  return `${pending.length ? `<div class="section-head"><h2>${T("سفارش‌های در حال انجام", "Pending orders")}</h2></div>${pending.map((o) => `<section class="card"><div class="between"><b>${esc(o.planTitle)}</b>${chip(o.status)}</div><p class="hint">${money(o.amount)} · ${date(o.createdAt)}</p>${o.error ? notice(esc(errorText(o.error)), "warn") : ""}${o.status === "queued" ? `<div class="actions">${button(T("لغو و آزادسازی رزرو", "Cancel & release hold"), "cancelOperation", `data-id="${o.id}"`)}</div>` : ""}</section>`).join("")}` : ""}<div class="actions" style="margin-top:20px">${button(T("لینک تجمیعی سرویس‌ها", "Combined subscription"), "combined")}</div><div class="section-head"><h2>${T("سرویس‌های من", "My services")}</h2><span class="chip">${num(s.rows.length)}</span></div>${s.rows.map((s) => `<article class="card"><div class="service-head"><div><h3>${esc(s.title)}</h3><p class="service-name">${esc(s.username)}</p></div>${chip(s.status)}</div>${s.usageAvailable ? `<div class="meter"><span style="width:${s.dataLimit ? Math.min(100, (s.usedBytes / s.dataLimit) * 100) : 0}%"></span></div><div class="between small muted"><span>${T("مصرف", "Used")}: ${num(s.usedBytes / GB)} GB</span><span>${s.dataLimit ? num(s.dataLimit / GB) + " GB" : "∞"}</span></div>` : '<p class="hint">' + T("مصرف آنلاین برای این نوع سرویس در دسترس نیست.", "Live traffic metering is unavailable for this service type.") + "</p>"}<p class="hint">${esc(s.location || s.panelTitle || "")} · ${T("انقضا", "Expiry")}: ${s.expiresAt ? date(s.expiresAt * 1000) : s.status === "on_hold" ? T("پس از اولین اتصال", "After first connection") : T("تاریخ ثابت ندارد", "No fixed expiry")}</p>${s.lastSyncError ? notice(T("اطلاعات ممکن است قدیمی باشد؛ بروزرسانی پنل ناموفق بوده است.", "Provider synchronization failed; displayed information may be stale."), "warn") : ""}<div class="actions" style="margin-top:18px">${button(T("کانفیگ و QR", "Configs & QR"), "content", `data-id="${s.id}"`, "primary")}${button(T("مدیریت سرویس", "Manage service"), "manage", `data-id="${s.id}"`)}</div></article>`).join("") || empty(T("هنوز سرویسی ندارید؛ از فروشگاه پلن انتخاب کنید.", "No services yet. Choose a plan in the store."), icon("services"))}`;
 }
 async function walletPage() {
   const [w, p, g] = await Promise.all([
@@ -480,7 +523,7 @@ async function walletPage() {
   P.data.account = w.account;
   P.payments = p.rows;
   P.gateways = g.rows;
-  return `<section class="hero"><div class="eyebrow">YOUR WALLET</div><p>${T("اعتبار قابل استفاده", "Available credit")}</p><div class="wallet-number">${num(w.account.available, 0)} <small>${T("تومان", "toman")}</small></div><div class="between small muted"><span>${T("مانده", "Balance")}: ${money(w.account.balance)}</span><span>${T("رزرو", "Held")}: ${money(w.account.held)}</span></div><div class="actions" style="margin-top:20px">${button(T("➕ شارژ کیف پول", "➕ Top up"), "topup", "", "primary")}${button(T("🎁 کد هدیه", "🎁 Gift code"), "gift")}</div></section><div class="section-head"><h2>${T("فاکتورهای پرداخت", "Payment invoices")}</h2></div>${
+  return `<section class="hero"><div class="eyebrow">YOUR WALLET</div><p>${T("اعتبار قابل استفاده", "Available credit")}</p><div class="wallet-number">${num(w.account.available, 0)} <small>${T("تومان", "toman")}</small></div><div class="between small muted"><span>${T("مانده", "Balance")}: ${money(w.account.balance)}</span><span>${T("رزرو", "Held")}: ${money(w.account.held)}</span></div><div class="actions" style="margin-top:20px">${button(icon("plus") + T("شارژ کیف پول", "Top up"), "topup", "", "primary")}${button(icon("gift") + T("کد هدیه", "Gift code"), "gift")}</div></section><div class="section-head"><h2>${T("فاکتورهای پرداخت", "Payment invoices")}</h2></div>${
     p.rows
       .slice(0, 20)
       .map(
@@ -522,7 +565,7 @@ async function paymentHTML(id) {
 }
 async function rewardsPage() {
   const r = await api("/raffles");
-  return `<section class="hero"><div class="eyebrow">MEMBER REWARDS</div><h2>${T("هدیه برای همراهی شما", "Rewards for being here")}</h2><p>${T("هدیه‌ها به اعتبار قابل استفاده در فروشگاه اضافه می‌شوند.", "Rewards add credit usable in this service store.")}</p></section><div class="section-head"><h2>${T("کد هدیه", "Gift code")}</h2></div><section class="card"><p class="muted small">${T("کد هدیه دارید؟ آن را در کیف پول فعال کنید.", "Have a gift code? Redeem it for wallet credit.")}</p><div class="actions">${button(T("ثبت کد هدیه", "Redeem code"), "gift", "", "primary")}</div></section>${portalDiceCard()}${P.data.settings.wheel.enabled ? `<div class="section-head"><h2>${T("گردونه", "Reward wheel")}</h2></div><section class="card"><div class="prize-ring" id="prize-ring">✦</div><p class="between small"><span>${T("هزینه هر چرخش", "Cost per spin")}: ${money(P.data.settings.wheel.fee)}</span><span>${P.data.settings.wheel.dailySpins} ${T("بار در روز", "per day")}</span></p><div class="actions">${button(T("مشاهده و تأیید چرخش", "Review & confirm spin"), "wheelConfirm", "", "primary")}</div></section>` : ""}<div class="section-head"><h2>${T("قرعه‌کشی‌های رایگان", "Free raffles")}</h2></div>${r.rows.map((r) => `<section class="card"><div class="between"><b>${esc(r.title)}</b><span class="chip">${r.status === "drawn" ? T("انجام شده", "Drawn") : T("باز", "Open")}</span></div><p class="hint">${date(r.closesAt)} · ${num(r.entriesCount)} ${T("شرکت‌کننده", "entries")}</p><p class="small">${T("جوایز", "Prizes")}: ${r.prizes.map(money).join(" / ")}</p>${r.status === "open" ? `<div class="actions">${r.joined ? '<span class="chip good">' + T("شما ثبت‌نام کرده‌اید", "You joined") + "</span>" : button(T("شرکت رایگان", "Join for free"), "raffle", `data-id="${r.id}"`, "primary")}</div>` : `<p class="hint">${r.winners.some((w) => w.userId === String(P.data.user.id)) ? T("🎉 شما برنده شده‌اید؛ اعتبار در کیف پول ثبت شد.", "🎉 You won! Credit was added to your wallet.") : T("نتیجه ثبت شد و اعتبار برندگان واریز شده است.", "Results recorded; winners received wallet credit.")}</p>`}</section>`).join("") || empty(T("قرعه‌کشی فعالی وجود ندارد.", "No raffles are available."))}`;
+  return `<section class="hero"><div class="eyebrow">MEMBER REWARDS</div><h2>${T("هدیه برای همراهی شما", "Rewards for being here")}</h2><p>${T("هدیه‌ها به اعتبار قابل استفاده در فروشگاه اضافه می‌شوند.", "Rewards add credit usable in this service store.")}</p></section><div class="section-head"><h2>${T("کد هدیه", "Gift code")}</h2></div><section class="card"><p class="muted small">${T("کد هدیه دارید؟ آن را در کیف پول فعال کنید.", "Have a gift code? Redeem it for wallet credit.")}</p><div class="actions">${button(T("ثبت کد هدیه", "Redeem code"), "gift", "", "primary")}</div></section>${portalDiceCard()}${P.data.settings.wheel.enabled ? `<div class="section-head"><h2>${T("گردونه", "Reward wheel")}</h2></div><section class="card"><div class="prize-ring" id="prize-ring">${icon("spark")}</div><p class="between small"><span>${T("هزینه هر چرخش", "Cost per spin")}: ${money(P.data.settings.wheel.fee)}</span><span>${P.data.settings.wheel.dailySpins} ${T("بار در روز", "per day")}</span></p><div class="actions">${button(T("مشاهده و تأیید چرخش", "Review & confirm spin"), "wheelConfirm", "", "primary")}</div></section>` : ""}<div class="section-head"><h2>${T("قرعه‌کشی‌های رایگان", "Free raffles")}</h2></div>${r.rows.map((r) => `<section class="card"><div class="between"><b>${esc(r.title)}</b><span class="chip">${r.status === "drawn" ? T("انجام شده", "Drawn") : T("باز", "Open")}</span></div><p class="hint">${date(r.closesAt)} · ${num(r.entriesCount)} ${T("شرکت‌کننده", "entries")}</p><p class="small">${T("جوایز", "Prizes")}: ${r.prizes.map(money).join(" / ")}</p>${r.status === "open" ? `<div class="actions">${r.joined ? '<span class="chip good">' + T("شما ثبت‌نام کرده‌اید", "You joined") + "</span>" : button(T("شرکت رایگان", "Join for free"), "raffle", `data-id="${r.id}"`, "primary")}</div>` : `<p class="hint">${r.winners.some((w) => w.userId === String(P.data.user.id)) ? icon("spark") + T("شما برنده شده‌اید؛ اعتبار در کیف پول ثبت شد.", "You won! Credit was added to your wallet.") : T("نتیجه ثبت شد و اعتبار برندگان واریز شده است.", "Results recorded; winners received wallet credit.")}</p>`}</section>`).join("") || empty(T("قرعه‌کشی فعالی وجود ندارد.", "No raffles are available."))}`;
 }
 // Live support desk: the message is filed as a panel ticket and the administrator
 // reply arrives here and in the Telegram chat.
@@ -533,7 +576,7 @@ function supportBubbles(thread) {
         "هنوز پیامی رد و بدل نشده است. اولین پیام خود را بفرستید.",
         "No messages yet. Send your first message.",
       ),
-      "✉",
+      icon("mail"),
     );
   return `<div class="support-thread">${thread.messages
     .map(
@@ -552,7 +595,7 @@ function supportHTML(thread, enabled) {
         ),
         "warn",
       );
-  return `<section class="hero"><div class="eyebrow">SUPPORT DESK</div><h2>${T("گفتگو با پشتیبانی", "Chat with support")}</h2><p>${T("پیام شما در پنل مدیریت ثبت می‌شود و پاسخ، هم اینجا و هم در ربات تلگرام به شما می‌رسد.", "Your message is filed in the admin panel. The reply appears here and in the Telegram bot.")}</p></section>${thread.open ? "" : '<div style="margin-top:14px">' + notice(T("این گفتگو بسته شده است؛ با ارسال پیام جدید دوباره باز می‌شود.", "This conversation was closed; a new message reopens it."), "warn") + "</div>"}<div class="section-head"><h2>${T("پیام‌ها", "Messages")}</h2>${button("↻", "supportReload", "", "icon-button")}</div><section class="card">${supportBubbles(thread)}</section><section class="card" style="margin-top:14px">${composer}</section><div class="actions" style="margin-top:14px">${button(T("بازگشت به راهنما", "Back to help"), "nav", 'data-tab="help"')}${P.data.botUsername ? button(T("باز کردن ربات", "Open the bot"), "openBotChat") : ""}</div>`;
+  return `<section class="hero"><div class="eyebrow">SUPPORT DESK</div><h2>${T("گفتگو با پشتیبانی", "Chat with support")}</h2><p>${T("پیام شما در پنل مدیریت ثبت می‌شود و پاسخ، هم اینجا و هم در ربات تلگرام به شما می‌رسد.", "Your message is filed in the admin panel. The reply appears here and in the Telegram bot.")}</p></section>${thread.open ? "" : '<div style="margin-top:14px">' + notice(T("این گفتگو بسته شده است؛ با ارسال پیام جدید دوباره باز می‌شود.", "This conversation was closed; a new message reopens it."), "warn") + "</div>"}<div class="section-head"><h2>${T("پیام‌ها", "Messages")}</h2>${button(icon("refresh"), "supportReload", "", "icon-button")}</div><section class="card">${supportBubbles(thread)}</section><section class="card" style="margin-top:14px">${composer}</section><div class="actions" style="margin-top:14px">${button(T("بازگشت به راهنما", "Back to help"), "nav", 'data-tab="help"')}${P.data.botUsername ? button(T("باز کردن ربات", "Open the bot"), "openBotChat") : ""}</div>`;
 }
 async function supportPage() {
   const d = await api("/support");
@@ -561,7 +604,7 @@ async function supportPage() {
   return supportHTML(d.support, d.enabled !== false);
 }
 async function helpPage() {
-  return `<section class="hero"><div class="eyebrow">HELP & SUPPORT</div><h2>${T("کنار شما هستیم", "We are here to help")}</h2><p>${T("راهنما، کلاینت‌ها و پشتیبانی خدمات", "Guides, client apps and service support")}</p><div class="actions" style="margin-top:18px">${button(T("💬 گفتگو با پشتیبانی", "💬 Chat with support"), "support", "", "primary")}${button(T("🤝 درخواست نمایندگی", "🤝 Reseller request"), "agent")}</div></section><div class="section-head"><h2>${T("کلاینت‌ها و راهنما", "Client apps & guides")}</h2></div>${P.data.settings.clientApps.map((a) => `<section class="card"><div class="between"><b>${esc(a.title)}</b><span class="chip">${esc(a.os)}</span></div><p class="hint">${esc(a.help)}</p><div class="actions"><a class="btn" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${T("دریافت برنامه", "Get app")} ↗</a></div></section>`).join("") || empty(T("مدیر هنوز راهنمای کلاینت اضافه نکرده است.", "No client guides have been added."))}<div class="divider"></div><section class="card"><h3>${T("حساب شما", "Your account")}</h3><p class="hint">${esc(P.data.user.name)} · ${esc(P.data.user.id)}</p><div class="actions">${button(T("خروج از نشست", "Sign out"), "logout", "", "danger")}</div></section>`;
+  return `<section class="hero"><div class="eyebrow">HELP & SUPPORT</div><h2>${T("کنار شما هستیم", "We are here to help")}</h2><p>${T("راهنما، کلاینت‌ها و پشتیبانی خدمات", "Guides, client apps and service support")}</p><div class="actions" style="margin-top:18px">${button(icon("chat") + T("گفتگو با پشتیبانی", "Chat with support"), "support", "", "primary")}${button(icon("agent") + T("درخواست نمایندگی", "Reseller request"), "agent")}</div></section><div class="section-head"><h2>${T("کلاینت‌ها و راهنما", "Client apps & guides")}</h2></div>${P.data.settings.clientApps.map((a) => `<section class="card"><div class="between"><b>${esc(a.title)}</b><span class="chip">${esc(a.os)}</span></div><p class="hint">${esc(a.help)}</p><div class="actions"><a class="btn" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${T("دریافت برنامه", "Get app")} ↗</a></div></section>`).join("") || empty(T("مدیر هنوز راهنمای کلاینت اضافه نکرده است.", "No client guides have been added."))}<div class="divider"></div><section class="card"><h3>${T("حساب شما", "Your account")}</h3><p class="hint">${esc(P.data.user.name)} · ${esc(P.data.user.id)}</p><div class="actions">${button(T("خروج از نشست", "Sign out"), "logout", "", "danger")}</div></section>`;
 }
 const actions = {
   closeModal,
@@ -798,7 +841,7 @@ const actions = {
     });
     modal(
       T("نتیجه گردونه", "Wheel result"),
-      `<div class="prize-ring">✦</div><h2 style="text-align:center">${esc(r.spin.prize)}</h2><p class="price" style="text-align:center;margin-top:10px">${money(r.spin.amount)}</p><div class="actions">${button(T("بستن", "Close"), "closeModal", "", "primary")}</div>`,
+      `<div class="prize-ring">${icon("spark")}</div><h2 style="text-align:center">${esc(r.spin.prize)}</h2><p class="price" style="text-align:center;margin-top:10px">${money(r.spin.amount)}</p><div class="actions">${button(T("بستن", "Close"), "closeModal", "", "primary")}</div>`,
     );
   },
   raffle: async (d) => {

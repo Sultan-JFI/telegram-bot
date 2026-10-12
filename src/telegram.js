@@ -111,37 +111,18 @@ export function renderTpl(text = '', user = {}) {
 // 400, which used to look like "the bot is dead" (no reply to /start at all).
 // Every keyboard the bot sends is built here, so an unusable button is trimmed
 // when it can be and dropped when it cannot — it is never fatal.
-function cleanButtonText(value) {
-  // Control characters and line breaks make Telegram reject the button, taking
-  // the whole keyboard down with it — collapse them so one label can never
-  // hide the other buttons. (Persian half-space U+200C is preserved.)
-  return label(value, 64).replace(/[\x00-\x20\x7F]+/g, ' ').trim();
-}
-function cleanButtonUrl(value) {
-  const url = String(value || '').trim();
-  // A prefix check is not enough: spaces or an unparsable URL make Telegram
-  // reject the whole keyboard with BUTTON_URL_INVALID.
-  if (!url || /[\s\x00-\x1F\x7F]/.test(url)) return '';
-  if (!/^(https?|tg):\/\//i.test(url)) return '';
-  try {
-    const parsed = new URL(url);
-    if (!['http:', 'https:', 'tg:'].includes(parsed.protocol)) return '';
-    if (parsed.protocol !== 'tg:' && !parsed.hostname) return '';
-  } catch { return ''; }
-  return url;
-}
 function telegramButton(b) {
   if (!b || typeof b !== 'object') return null;
-  const text = cleanButtonText(b.text);
+  const text = label(b.text, 64);
   if (!text) return null;
   if (b.type === 'web_app' || b.web_app) {
     const url = String((b.web_app && b.web_app.url) || b.value || '').trim();
     // Web App buttons only accept https; anything else would sink the keyboard.
-    return httpsUrl(url) && !/[\s\x00-\x1F\x7F]/.test(url) ? { text, web_app: { url: cutBytes(url, 512) } } : null;
+    return httpsUrl(url) ? { text, web_app: { url: cutBytes(url, 512) } } : null;
   }
   if (b.type === 'url') {
-    const url = cleanButtonUrl(b.value);
-    return url ? { text, url: cutBytes(url, 512) } : null;
+    const url = String(b.value || '').trim();
+    return /^(https?|tg):\/\//i.test(url) ? { text, url: cutBytes(url, 512) } : null;
   }
   if (b.type === 'submenu') {
     const value = cutBytes(String(b.value || '').trim(), 32);
@@ -168,10 +149,7 @@ export function pageMarkup(rows, { withBack = false, T = BOT_T.fa } = {}) {
     }
     if (line.length) kb.push(line.slice(0, 8));
   }
-  if (withBack) kb.push([{ text: cleanButtonText(T.back) || '⬅️', callback_data: 'sub:root' }]);
-  // Never send an empty keyboard: Telegram rejects `{"inline_keyboard":[]}`
-  // with a 400, which used to surface as missing buttons on /start.
-  if (!kb.length) return undefined;
+  if (withBack) kb.push([{ text: label(T.back, 64), callback_data: 'sub:root' }]);
   return { inline_keyboard: kb };
 }
 
@@ -198,15 +176,8 @@ export function rootInlineRows(menu, settings, lang, user = null) {
   // Default/custom bot: the home screen shows ONLY the buttons the administrator
   // added through the panel's menu & button builder — nothing else.
   if (settings.botPurpose === 'custom') return [...adminRows, ...customButtonsOf(menu)];
-  // Every other bot shows the stored panel buttons above its module buttons.
-  // The stored list is authoritative for every bot type: once the menu is
-  // saved the added buttons always render (no longer gated behind the optional
-  // "menu" module flag), and an explicitly emptied list stays empty instead of
-  // resurrecting the stock defaults.
-  const stored = Array.isArray(menu?.explicitInlineButtons)
-    ? customButtonsOf(menu)
-    : (menu?.customized && Array.isArray(menu.inlineButtons) ? menu.inlineButtons.filter((row) => Array.isArray(row) && row.length) : []);
-  return withSupport([...adminRows, ...stored, ...systemRows(settings, lang || 'fa')], settings, lang || 'fa');
+  const custom = menu.customized;
+  return withSupport([...adminRows, ...(custom && enabled(settings, 'menu') ? menu.inlineButtons : []), ...systemRows(settings, lang || 'fa')], settings, lang || 'fa');
 }
 export function inlineMarkup(menu, settings, lang, user = null) {
   // The news-purpose bot is a focused single-entry bot: one «خبر» button on the
@@ -521,14 +492,6 @@ async function handleCallback(env, cb, token, settings) {
     if (data.startsWith('sub:')) { await showPage(token, chatId, messageId, menu, data.slice(4), lang, settings, user); return answer(); }
     if (data.startsWith('txt:')) { const [, src, r, c] = data.split(':'); const rows = src === 'root' ? rootInlineRows(menu, settings, lang, user) : menu.submenus?.[src]?.buttons || []; const btn = rows[+r]?.[+c]; return answer(btn?.type === 'text' ? String(btn.value).slice(0, 200) : '…', true); }
     if (data === 'support:open' && enabled(settings, 'support')) { user.supportOpen = true; user.flow = null; await putUser(env, user); await sendToUser(token, chatId, T.supportIntro); return answer(); }
-    // Panel-built callback buttons carry the administrator's own values, which
-    // no built-in handler knows. Acknowledge the tap with the button's label
-    // so a custom button always "works" instead of reporting a disabled
-    // feature. (Legacy over-long values are compared cut, exactly as rendered.)
-    const customHit = [...(Array.isArray(menu?.explicitInlineButtons) ? menu.explicitInlineButtons : menu.inlineButtons || []), ...Object.values(menu?.submenus || {}).flatMap((sm) => sm?.buttons || [])]
-      .flat()
-      .find((b) => b && b.type === 'callback' && cutBytes(String(b.value || '').trim(), 64) === data);
-    if (customHit) return answer(label(customHit.text, 200) || '✓');
   } catch (e) { return answer(data.startsWith('vpn:') ? serviceError(e.message, lang) : checkoutError(e.message, lang), true); }
   return answer(tr('این بخش در نوع فعلی ربات فعال نیست.', 'This feature is disabled for this bot type.', lang), true);
 }
