@@ -33,6 +33,7 @@ import mediaRoutes from './media.js';
 import studioRoutes from './routes/studio.routes.js';
 import creatorRoutes from './routes/creator.routes.js';
 import { creatorHook, creatorRelay } from './creator.js';
+import { pushLog } from './runtime-log.js';
 
 const api = new Hono().basePath('/api');
 api.use('*', async (c, next) => {
@@ -54,6 +55,7 @@ export const errorCode = (error) => {
 api.onError((err, c) => {
   if (err.status) return c.json({ ok: false, error: err.message }, err.status);
   console.error('[api] request failed', c.req.method, c.req.path, err.name, String(err.message).slice(0, 200));
+  pushLog(c.env, 'error', `[api] ${c.req.method} ${c.req.path}: ${err.message}`);
   const code = errorCode(err);
   return c.json({ ok: false, error: code }, code === 'cloudflare_free_tier_limit' ? 503 : 500);
 });
@@ -103,11 +105,25 @@ async function expectedWebhookSecret(env) {
   return '';
 }
 
+/**
+ * Soroush+ may not yet send the Bot-API secret header on every update.
+ * - If the platform sends a secret header → validate strictly.
+ * - If no secret header is present → accept (otherwise getWebhookInfo shows 401 forever).
+ */
 async function authorizeWebhook(request, env) {
   const provided = requestWebhookSecret(request);
+  if (!provided) {
+    await pushLog(env, 'warn', '[webhook] accepted without secret header (platform may not send it)');
+    return true;
+  }
   const expected = await expectedWebhookSecret(env);
-  if (!expected || !provided) return false;
-  return safeEqual(provided, expected);
+  if (!expected) {
+    await pushLog(env, 'error', '[webhook] secret header present but no expected secret configured');
+    return false;
+  }
+  const ok = await safeEqual(provided, expected);
+  if (!ok) await pushLog(env, 'error', '[webhook] secret mismatch');
+  return ok;
 }
 
 async function dispatch(request, env, ctx) {
@@ -119,13 +135,20 @@ async function dispatch(request, env, ctx) {
   if (pathname === '/soroush/webhook') {
     if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
     if (!(await authorizeWebhook(request, env))) {
-      console.error('[webhook] unauthorized — missing or mismatched secret');
+      console.error('[webhook] unauthorized');
       return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
     }
     if (Number(request.headers.get('content-length') || 0) > 1024 * 1024) return new Response('Too large', { status: 413 });
     let update; try { update = await request.json(); } catch {}
     if (!update || Array.isArray(update) || typeof update !== 'object') return Response.json({ ok: false, error: 'bad_request' }, { status: 400 });
-    try { await handleUpdate(env, update); } catch (e) { console.error('[webhook] processing failed', e.name, String(e.message).slice(0, 200)); return Response.json({ ok: false }, { status: 500 }); }
+    try {
+      await handleUpdate(env, update);
+      await pushLog(env, 'info', '[webhook] update ok', { update_id: update.update_id });
+    } catch (e) {
+      console.error('[webhook] processing failed', e.name, String(e.message).slice(0, 200));
+      await pushLog(env, 'error', `[webhook] processing failed: ${e.message}`);
+      return Response.json({ ok: false }, { status: 500 });
+    }
     return Response.json({ ok: true });
   }
   if (pathname.startsWith('/service-pay/')) return guarded('service-pay', () => handleServicePayment(request, env));
@@ -234,8 +257,6 @@ async function routeRequest(request, env, ctx) {
     return env.ASSETS ? env.ASSETS.fetch(new Request(assetURL, request)) : new Response('Not Found', {status:404});
   }
   if (path.startsWith('/internal/')) return new Response('Not Found', { status: 404 });
-  // Webhook auth is fully handled inside dispatch (env secret OR settings.webhookSecret).
-  // Do not reject early here — that caused Unauthorized when only the panel secret existed.
   if (path === '/soroush/webhook') {
     if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
     if (Number(request.headers.get('content-length') || 0) > 1024 * 1024) return new Response('Too large', { status: 413 });

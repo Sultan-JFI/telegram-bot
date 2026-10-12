@@ -2,7 +2,9 @@
 import { Hono } from 'hono';
 import { requireAuth } from '../auth.js';
 import { getStats, getRecentUsers } from '../kv.js';
-import { resolveToken, tgApi, withTimeout } from '../telegram.js';
+import { resolveToken, tgApi } from '../bot-api.js';
+import { withTimeout } from '../telegram.js';
+import { getLogs, clearLogs } from '../runtime-log.js';
 
 const r = new Hono();
 r.use('*', requireAuth);
@@ -33,19 +35,31 @@ r.get('/stats', async (c) => {
           lastErrorDate: info.result.last_error_date || 0,
         };
       } else if (info) {
-        webhook = { configured: true, error: info.description || 'telegram_error' };
+        webhook = { configured: true, error: info.description || 'splus_error' };
       } else {
         webhook = { configured: true, error: 'timeout' };
       }
     }
   } catch (e) {
-    webhook = { configured: true, error: e.message || 'telegram_error' };
+    webhook = { configured: true, error: e.message || 'splus_error' };
   }
 
   return c.json({
     ok: true,
     data: { stats, recentUsers, webhook, version: env.APP_VERSION || '-', ts: Date.now() },
   });
+});
+
+/** Recent runtime logs for the admin panel (KV ring buffer). */
+r.get('/logs', async (c) => {
+  const limit = Math.min(100, Math.max(1, Number(c.req.query('limit')) || 50));
+  const logs = await getLogs(c.env, limit);
+  return c.json({ ok: true, data: { logs, count: logs.length } });
+});
+
+r.delete('/logs', async (c) => {
+  await clearLogs(c.env);
+  return c.json({ ok: true, data: { cleared: true } });
 });
 
 export default r;
