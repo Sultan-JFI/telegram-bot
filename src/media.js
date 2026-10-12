@@ -21,14 +21,15 @@ export async function sendMedia(env, token, chatId, mediaId, { caption, reply_ma
 
 export async function fileResponse(token, fileId, { inline = false, name = 'file' } = {}) {
   const res = await tgApi(token, 'getFile', { file_id: fileId });
-  assert(res.ok && res.result?.file_path, 'telegram_file_unavailable', 502);
+  assert(res.ok && res.result?.file_path, 'splus_file_unavailable', 502);
   assert((res.result.file_size || 0) <= MEDIA_LIMITS.document, 'file_download_limit', 413);
   const path = res.result.file_path;
   assert(!path.includes('..') && /^[A-Za-z0-9_/.\-]+$/.test(path), 'invalid_file_path', 502);
   let f;
-  try { f = await fetch(`https://api.telegram.org/file/bot${token}/${path}`, { signal: AbortSignal.timeout(15000) }); } catch { throw new Error('telegram_network_error'); }
-  assert(f.ok, 'telegram_file_unavailable', 502);
-  const safeName = encodeURIComponent(name.replace(/[\r\n]/g, ''));
+  // Soroush+ file download base: https://api.splus.ir/file/bot<token>/<file_path>
+  try { f = await fetch(`https://api.splus.ir/file/bot${token}/${path}`, { signal: AbortSignal.timeout(15000) }); } catch { throw new Error('splus_network_error'); }
+  assert(f.ok, 'splus_file_unavailable', 502);
+  const safeName = encodeURIComponent(name.replace(/[\r\n"]/g, ''));
   const type = f.headers.get('content-type') || 'application/octet-stream';
   const isImage = /^image\/(jpeg|png|webp|gif)$/.test(type);
   return new Response(f.body, { headers: { 'content-type': isImage ? type : 'application/octet-stream', 'content-disposition': `${inline && isImage ? 'inline' : 'attachment'}; filename*=UTF-8''${safeName}`, 'cache-control': 'private, no-store', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'none'; sandbox" } });
@@ -79,7 +80,7 @@ r.post('/', async c => {
   const sent = await tgApi(token, METHODS[outputKind], upload);
   assert(sent.ok, sent.description || 'upload_failed', 502);
   const item = outputKind === 'photo' ? sent.result.photo?.at(-1) : sent.result[outputKind];
-  assert(item?.file_id, 'telegram_media_missing', 502);
+  assert(item?.file_id, 'splus_media_missing', 502);
   const m = { id: id(), kind: outputKind, fileId: item.file_id, botId: token.split(':')[0], name: str(file.name || 'upload', 160), mime: file.type, size: file.size, createdAt: Date.now() };
   await putJson(c.env, entityKey('media', m.id), m);
   // file_id remains usable after deleting the staging message.
