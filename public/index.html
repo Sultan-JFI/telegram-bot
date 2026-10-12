@@ -48,6 +48,26 @@
   <script src="/studio.js?v=3.6.0"></script>
   <script src="/services.js?v=3.6.0"></script>
   <script>
+  /* Soroush+ branding overrides (panel.js still ships some Telegram labels) */
+  (function () {
+    try {
+      if (typeof I18N === 'undefined') return;
+      if (I18N.fa) {
+        I18N.fa.supHint = 'پیام‌های کاربران از دستور /support ربات اینجا می‌رسند؛ پاسخ بدهید تا در سروش+ تحویل بگیرند.';
+        I18N.fa.notDelivered = 'ثبت شد (ارسال به سروش+ ناموفق)';
+        I18N.fa.webhookStatus = 'وضعیت وب‌هوک سروش+';
+        I18N.fa.tokenHint = 'از BotFather سروش+ (splus.ir/botfather) دریافت می‌شود. خالی بگذارید تا تغییر نکند.';
+      }
+      if (I18N.en) {
+        I18N.en.supHint = 'Messages sent via /support in the bot arrive here; reply and they are delivered in the user’s Soroush+.';
+        I18N.en.notDelivered = 'Saved (Soroush+ delivery failed)';
+        I18N.en.webhookStatus = 'Soroush+ webhook status';
+        I18N.en.tokenHint = 'Get it from Soroush+ BotFather (splus.ir/botfather). Leave empty to keep unchanged.';
+      }
+    } catch (e) {}
+  })();
+  </script>
+  <script>
   (async function () {
     if (window.Telegram && window.Telegram.WebApp) {
       try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (e) {}
