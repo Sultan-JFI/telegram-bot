@@ -1,9 +1,9 @@
 {
-  "name": "telegram-bot-panel-v2",
+  "name": "soroush-bot-panel",
   "version": "3.6.0",
   "private": true,
   "type": "module",
-  "description": "پنل چندمنظوره دو زبانه ربات تلگرام روی Cloudflare Workers و Durable Objects (SQLite)",
+  "description": "پنل چندمنظوره دو زبانه ربات سروش+ روی Cloudflare Workers و Durable Objects (SQLite)",
   "scripts": {
     "dev": "npm run build && wrangler dev --ip 0.0.0.0",
     "deploy": "npm run build && wrangler deploy",

@@ -117,11 +117,12 @@ r.post('/webhook', async (c) => {
     const secret = await resolveWebhookSecret(env);
     const publicBase = env.MANAGED_BASE_URL || env.PUBLIC_BASE_URL || new URL(c.req.url).origin;
     const url = `${publicBase.replace(/\/$/, '')}/soroush/webhook`;
+    // Soroush+ currently reports 401 on delivery when secret_token is set but
+    // the platform does not echo the matching header. Register without secret.
     res = await tgApi(token, 'setWebhook', {
       url,
-      secret_token: secret,
       allowed_updates: ['message', 'edited_message', 'callback_query', 'channel_post', 'my_chat_member', 'chat_member', 'pre_checkout_query'],
-      drop_pending_updates: false,
+      drop_pending_updates: true,
     });
     if (res.ok) {
       const settings = await getSettings(env);
@@ -132,7 +133,6 @@ r.post('/webhook', async (c) => {
     }
   }
 
-  // Surface Soroush API errors clearly (e.g. Unauthorized from bad token).
   if (!res.ok) {
     const desc = res.description || 'splus_error';
     const status = res.error_code === 401 || /unauthorized/i.test(desc) ? 401 : 400;
