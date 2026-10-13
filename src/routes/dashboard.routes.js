@@ -2,8 +2,7 @@
 import { Hono } from 'hono';
 import { requireAuth } from '../auth.js';
 import { getStats, getRecentUsers } from '../kv.js';
-import { resolveToken, tgApi } from '../bot-api.js';
-import { withTimeout } from '../telegram.js';
+import { resolveToken, tgApi, withTimeout } from '../bot-api.js';
 import { getLogs, clearLogs } from '../runtime-log.js';
 
 const r = new Hono();
@@ -50,7 +49,6 @@ r.get('/stats', async (c) => {
   });
 });
 
-/** Recent runtime logs for the admin panel (KV ring buffer). */
 r.get('/logs', async (c) => {
   const limit = Math.min(100, Math.max(1, Number(c.req.query('limit')) || 50));
   const logs = await getLogs(c.env, limit);
