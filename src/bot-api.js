@@ -4,12 +4,6 @@ export async function resolveToken(env) {
   const s = await getSettings(env);
   return s.botToken || env.BOT_TOKEN || null;
 }
-
-export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-export function withTimeout(promise, ms, fallback = null) {
-  return Promise.race([promise, new Promise((r) => setTimeout(() => r(fallback), ms))]);
-}
-
 export async function tgApi(token, method, payload = {}) {
   if (!token) return { ok: false, error_code: 0, description: 'token_missing' };
   try {
@@ -22,6 +16,9 @@ export async function tgApi(token, method, payload = {}) {
     });
     const data = await res.json().catch(() => ({ ok: false, error_code: res.status, description: 'splus_invalid_response' }));
     if (!data.ok && payload && (form ? payload.has('reply_markup') : payload.reply_markup) && rejectedMarkup(data.description)) {
+      // A keyboard the platform refuses (over-long callback data, a non-https Web App
+      // URL, …) used to swallow the whole reply — /start looked dead until the
+      // offending button was deleted. Deliver the text without the buttons.
       const retry = form ? payload : { ...payload };
       if (form) retry.delete('reply_markup'); else delete retry.reply_markup;
       const plain = await fetch(`https://api.splus.ir/bot${token}/${method}`, {
@@ -32,12 +29,18 @@ export async function tgApi(token, method, payload = {}) {
     }
     return data;
   } catch {
+    // Never include an exception URL: API URLs contain the bot credential.
     return { ok: false, error_code: 0, description: 'splus_network_error', uncertain: true };
   }
 }
+// Platform reports a bad inline keyboard with these 400s; only those are worth
+// retrying, anything else (blocked user, missing chat) is returned as-is.
 function rejectedMarkup(description) {
   return /button|keyboard|reply markup|BUTTON_DATA_INVALID|can't parse/i.test(String(description || ''));
 }
+// Button taps must refresh the open message instead of stacking a new one in the chat.
+// A callback handler opens an edit slot; the first reply to that same chat edits the
+// original message, and anything the handler sends afterwards is delivered normally.
 let EDIT_SLOT = null;
 const EDITABLE_EXTRA = ['reply_markup', 'parse_mode', 'entities', 'disable_web_page_preview', 'link_preview_options'];
 export function beginMessageEdit(chatId, messageId) {
@@ -47,6 +50,8 @@ export function endMessageEdit() { EDIT_SLOT = null; }
 function editableExtra(extra) {
   if (Object.keys(extra || {}).some((k) => !EDITABLE_EXTRA.includes(k))) return false;
   const markup = extra && extra.reply_markup;
+  // Only navigable screens replace themselves. Plain notices, delivered content and
+  // reply-keyboard prompts stay separate messages the user can keep scrolling back to.
   return !!markup && Array.isArray(markup.inline_keyboard) && markup.inline_keyboard.length > 0;
 }
 export async function sendToUser(token, chatId, text, extra = {}) {
@@ -56,7 +61,9 @@ export async function sendToUser(token, chatId, text, extra = {}) {
     const payload = { chat_id: chatId, message_id: slot.messageId, text, ...extra };
     const edited = await tgApi(token, 'editMessageText', payload);
     if (edited.ok) return edited;
+    // Platform reports an unchanged message as an error; the screen is already correct.
     if (/message is not modified/i.test(edited.description || '')) return { ok: true, result: { message_id: slot.messageId, chat: { id: chatId } } };
+    // Media captions, expired messages and deleted messages fall back to a new message.
   }
   return tgApi(token, 'sendMessage', { chat_id: chatId, text, ...extra });
 }
