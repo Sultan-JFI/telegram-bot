@@ -4,6 +4,12 @@ export async function resolveToken(env) {
   const s = await getSettings(env);
   return s.botToken || env.BOT_TOKEN || null;
 }
+
+export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export function withTimeout(promise, ms, fallback = null) {
+  return Promise.race([promise, new Promise((r) => setTimeout(() => r(fallback), ms))]);
+}
+
 export async function tgApi(token, method, payload = {}) {
   if (!token) return { ok: false, error_code: 0, description: 'token_missing' };
   try {
