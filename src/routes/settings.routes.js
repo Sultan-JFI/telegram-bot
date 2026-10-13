@@ -5,12 +5,26 @@ import { resolveToken, tgApi } from '../bot-api.js';
 import { patchV2Settings, PURPOSES, activeModules, assert } from '../config.js';
 import { readJson } from '../body.js';
 
+const DEFAULT_BOT_COMMANDS = [
+  { command: 'start', description: 'شروع / Start' },
+  { command: 'help', description: 'راهنما / Help' },
+  { command: 'lang', description: 'زبان / Language' },
+  { command: 'id', description: 'آیدی عددی / My ID' },
+  { command: 'support', description: 'پشتیبانی / Support' },
+  { command: 'ping', description: 'وضعیت ربات / Ping' },
+];
+
+async function syncBotCommands(token) {
+  try {
+    await tgApi(token, 'setMyCommands', { commands: DEFAULT_BOT_COMMANDS });
+  } catch {}
+}
+
 const r = new Hono();
 r.use('*', requireAuth);
 
 const fail = (c, error, status = 400) => c.json({ ok: false, error }, status);
 
-/** Prefer Worker secret; otherwise use/persist a panel-managed secret in settings. */
 export async function resolveWebhookSecret(env) {
   if (env.WEBHOOK_SECRET) return env.WEBHOOK_SECRET;
   const settings = await getSettings(env);
@@ -117,14 +131,13 @@ r.post('/webhook', async (c) => {
     const secret = await resolveWebhookSecret(env);
     const publicBase = env.MANAGED_BASE_URL || env.PUBLIC_BASE_URL || new URL(c.req.url).origin;
     const url = `${publicBase.replace(/\/$/, '')}/soroush/webhook`;
-    // Soroush+ currently reports 401 on delivery when secret_token is set but
-    // the platform does not echo the matching header. Register without secret.
     res = await tgApi(token, 'setWebhook', {
       url,
       allowed_updates: ['message', 'edited_message', 'callback_query', 'channel_post', 'my_chat_member', 'chat_member', 'pre_checkout_query'],
       drop_pending_updates: true,
     });
     if (res.ok) {
+      await syncBotCommands(token);
       const settings = await getSettings(env);
       settings.publicBaseUrl = publicBase.replace(/\/$/, '');
       if (!env.WEBHOOK_SECRET) settings.webhookSecret = secret;
@@ -144,6 +157,7 @@ r.post('/webhook', async (c) => {
 r.post('/test', async c => {
   const token = await resolveToken(c.env); assert(token, 'token_missing');
   const me = await tgApi(token, 'getMe'); assert(me.ok, me.description || 'splus_connection_failed');
+  await syncBotCommands(token);
   const settings = await getSettings(c.env); settings.botUsername = me.result.username || ''; await saveSettings(c.env, settings);
   return c.json({ ok: true, data: { bot: me.result, settings: publicView(settings, c.env.BOT_TOKEN, c.env) } });
 });
